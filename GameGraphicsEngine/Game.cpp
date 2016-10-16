@@ -59,6 +59,10 @@ Game::~Game()
 	if (mat1) { delete (mat1); }
 	if (mat2) { delete (mat2); }
 
+	// Delete SpriteFont stuff
+	if (spriteBatch) { delete spriteBatch; }
+	if (spriteFont) { delete spriteFont; }
+
 	// Release textures and sampler
 	sampler->Release();
 	rockSRV->Release();
@@ -71,6 +75,8 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	// Initialize to START game state
+	currentState = START;
 
 	// Load Textures
 	CreateWICTextureFromFile(device, context, L"Debug/Assets/Textures/MossRock.tif", 0, &rockSRV);
@@ -92,6 +98,7 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
+	LoadSpriteFont();
 	CreateMatrices();
 	CreateBasicGeometry();
 
@@ -150,7 +157,12 @@ void Game::LoadShaders()
 	// scenarios work correctly, although others exist
 }
 
-
+// As the name suggests, this loads and initializes a SpriteFont and SpriteBatch
+// so that we can draw text to the program window
+void Game::LoadSpriteFont() {
+	spriteBatch = new SpriteBatch(context);
+	spriteFont = new SpriteFont(device, L"courier.spritefont");
+}
 
 // --------------------------------------------------------
 // Initializes the matrices necessary to represent our geometry's 
@@ -215,17 +227,36 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	entityOne->SetRotation(XMFLOAT3(entityOne->GetRotation().x, entityOne->GetRotation().y + 0.0001, entityOne->GetRotation().z));
-	entityOne->FinalizeMatrix();
+	switch (currentState)
+	{
+	case Game::START:
+		// Advance to PLAY when Enter is pressed
+		if (GetAsyncKeyState(VK_RETURN))
+			currentState = PLAY;
 
-	entityTwo->SetPosition(XMFLOAT3(entityTwo->GetPosition().x, sin(totalTime), entityTwo->GetPosition().z));
-	entityTwo->FinalizeMatrix();
+		break;
+	case Game::PLAY:
+		// Update entities only during PLAY
+		entityOne->SetRotation(XMFLOAT3(entityOne->GetRotation().x, entityOne->GetRotation().y + 0.0001, entityOne->GetRotation().z));
+		entityOne->FinalizeMatrix();
 
-	entityThree->SetScale(XMFLOAT3(sin(totalTime) + 1, sin(totalTime) + 1, sin(totalTime) + 1));
-	entityThree->FinalizeMatrix();
+		entityTwo->SetPosition(XMFLOAT3(entityTwo->GetPosition().x, sin(totalTime), entityTwo->GetPosition().z));
+		entityTwo->FinalizeMatrix();
+
+		entityThree->SetScale(XMFLOAT3(sin(totalTime) + 1, sin(totalTime) + 1, sin(totalTime) + 1));
+		entityThree->FinalizeMatrix();
+
+		break;
+	case Game::PAUSE:
+		break;
+	case Game::END:
+		break;
+	default:
+		break;
+	}
 
 	gameCamera->Update(deltaTime);
-	// Quit if the escape key is pressed
+	// Quit if the escape key is pressed -- do this regardless of currentState
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 }
@@ -254,47 +285,70 @@ void Game::Draw(float deltaTime, float totalTime)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	// Drawing the Sphere
-	ID3D11Buffer* vertexBuffer = entityOne->GetMesh()->GetVertexBuffer();
-	ID3D11Buffer* indexBuffer = entityOne->GetMesh()->GetIndexBuffer();
-	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	ID3D11Buffer* vertexBuffer = 0;
+	ID3D11Buffer* indexBuffer = 0;
 
-	// Prepare the shaders for the material being used
-	entityOne->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
+	switch (currentState)
+	{
+	case Game::START:
+		// Draw text
+		// When text is being drawn, the objects in PLAY end up looking really bad for some reason
+		/*spriteBatch->Begin();
+		spriteFont->DrawString(spriteBatch, L"Press Enter to start", XMFLOAT2(0.0f, 0.0f), Colors::Black);
+		spriteBatch->End();*/
 
-	context->DrawIndexed(
-		entityOne->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-		0,     // Offset to the first index we want to use
-		0);    // Offset to add to each index when looking up vertices
+		break;
+	case Game::PLAY:
+		// Drawing the Sphere
+		vertexBuffer = entityOne->GetMesh()->GetVertexBuffer();
+		indexBuffer = entityOne->GetMesh()->GetIndexBuffer();
+		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// Drawing a Cube
-	vertexBuffer = entityTwo->GetMesh()->GetVertexBuffer();
-	indexBuffer = entityTwo->GetMesh()->GetIndexBuffer();
-	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		// Prepare the shaders for the material being used
+		entityOne->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
 
-	// Prepare the shaders for the material being used
-	entityTwo->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
+		context->DrawIndexed(
+			entityOne->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
 
-	context->DrawIndexed(
-		entityTwo->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-		0,     // Offset to the first index we want to use
-		0);    // Offset to add to each index when looking up vertices
+				   // Drawing a Cube
+		vertexBuffer = entityTwo->GetMesh()->GetVertexBuffer();
+		indexBuffer = entityTwo->GetMesh()->GetIndexBuffer();
+		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// Drawing a helix
-	vertexBuffer = entityThree->GetMesh()->GetVertexBuffer();
-	indexBuffer = entityThree->GetMesh()->GetIndexBuffer();
-	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		// Prepare the shaders for the material being used
+		entityTwo->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
 
-	// Prepare the shaders for the material being used
-	entityThree->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
+		context->DrawIndexed(
+			entityTwo->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
 
-	context->DrawIndexed(
-		entityThree->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-		0,     // Offset to the first index we want to use
-		0);    // Offset to add to each index when looking up vertices
+				   // Drawing a helix
+		vertexBuffer = entityThree->GetMesh()->GetVertexBuffer();
+		indexBuffer = entityThree->GetMesh()->GetIndexBuffer();
+		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		// Prepare the shaders for the material being used
+		entityThree->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
+
+		context->DrawIndexed(
+			entityThree->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
+
+		break;
+	case Game::PAUSE:
+		break;
+	case Game::END:
+		break;
+	default:
+		break;
+	}
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

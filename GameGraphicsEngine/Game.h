@@ -9,12 +9,20 @@
 #include "Material.h"
 #include "Lights.h"
 #include "WICTextureLoader.h"
+#include <SpriteFont.h>
 
 class Game 
 	: public DXCore
 {
-
 public:
+
+	enum GAME_STATES {
+		START,
+		PLAY,
+		PAUSE,
+		END
+	};
+
 	Game(HINSTANCE hInstance);
 	~Game();
 
@@ -34,8 +42,12 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
+	void LoadSpriteFont();
 	void CreateMatrices();
 	void CreateBasicGeometry();
+
+	// GameStates enum to track where we are in the game loop
+	GAME_STATES currentState;
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
@@ -75,5 +87,9 @@ private:
 	ID3D11ShaderResourceView* rockSRV;
 	ID3D11ShaderResourceView* woodSRV;
 	ID3D11SamplerState* sampler;
+
+	// Spritefont members (for text)
+	SpriteBatch* spriteBatch;
+	SpriteFont* spriteFont;
 };
 
