@@ -100,10 +100,10 @@ void Game::Init()
 	LoadShaders();
 	LoadSpriteFont();
 	CreateMatrices();
-	CreateBasicGeometry();
+	//CreateBasicGeometry(); // Don't really need to be making the geometry until we're advancing to the Play state (at least for now)
 
 
-	// Set Up Light
+	// Set Up Light		** We may be able to leave this out of Init(), and only set up the lights (and LoadShaders) in InitForPlay()
 	dirLight.AmbietColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
 	dirLight.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
 	dirLight.Direction = XMFLOAT3(0, -1, 0);
@@ -119,6 +119,33 @@ void Game::Init()
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+// Initializes game for transition from Start to Play state
+void Game::InitForPlay() {
+	ResetRenderStates();
+	LoadShaders();
+	CreateBasicGeometry();
+
+	// Also need to reset the lighting, since leaving it out here causes the geometry to not show up
+	dirLight.AmbietColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	dirLight.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
+	dirLight.Direction = XMFLOAT3(0, -1, 0);
+
+	dirLight2.AmbietColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0f);
+	dirLight2.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
+	dirLight2.Direction = XMFLOAT3(0, 0, 1);
+
+	pixelShader->SetData("light", &dirLight, sizeof(DirectionalLight));
+	pixelShader->SetData("light2", &dirLight2, sizeof(DirectionalLight));
+}
+
+// Resets various render states to their default values
+void Game::ResetRenderStates() {
+	// Once we set up our own states for these, we can reset to those, rather than the defaults
+	context->OMSetDepthStencilState(0, 0);
+	context->RSSetState(0);
+	//context->OMSetBlendState(0, 0, 0); // Resetting the Blend State to default causes the geometry to vanish. Need to look into later
 }
 
 // --------------------------------------------------------
@@ -232,7 +259,10 @@ void Game::Update(float deltaTime, float totalTime)
 	case Game::START:
 		// Advance to PLAY when Enter is pressed
 		if (GetAsyncKeyState(VK_RETURN))
+		{
 			currentState = PLAY;
+			InitForPlay();
+		}
 
 		break;
 	case Game::PLAY:
@@ -292,10 +322,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 	case Game::START:
 		// Draw text
-		// When text is being drawn, the objects in PLAY end up looking really bad for some reason
-		/*spriteBatch->Begin();
+		spriteBatch->Begin();
 		spriteFont->DrawString(spriteBatch, L"Press Enter to start", XMFLOAT2(0.0f, 0.0f), Colors::Black);
-		spriteBatch->End();*/
+		spriteBatch->End();
 
 		break;
 	case Game::PLAY:
