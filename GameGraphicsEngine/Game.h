@@ -10,6 +10,8 @@
 #include "Lights.h"
 #include "WICTextureLoader.h"
 #include <SpriteFont.h>
+#include "Player.h"
+#include "Target.h"
 
 class Game 
 	: public DXCore
@@ -48,6 +50,7 @@ private:
 
 	void InitForPlay();
 	void ResetRenderStates();
+	void LoadTargets();
 
 	// GameStates enum to track where we are in the game loop
 	GAME_STATES currentState;
@@ -94,5 +97,11 @@ private:
 	// Spritefont members (for text)
 	SpriteBatch* spriteBatch;
 	SpriteFont* spriteFont;
+
+	// Player
+	Player* player;
+
+	// Target Array
+	vector<Target*> targets;
 };
 

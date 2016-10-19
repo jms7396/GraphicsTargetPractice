@@ -48,12 +48,15 @@ Game::~Game()
 	if (sphereMesh) { delete(sphereMesh); }
 	if (helixMesh) { delete(helixMesh); }
 	if (cubeMesh) { delete(cubeMesh); }
-	if (entityOne) { delete(entityOne); }
-	if (entityTwo){ delete(entityTwo); }
-	if (entityThree) { delete(entityThree); }
+	//if (entityOne) { delete(entityOne); }
+	//if (entityTwo){ delete(entityTwo); }
+	//if (entityThree) { delete(entityThree); }
 
 	// Delete the Camera
 	if (gameCamera) { delete (gameCamera); }
+
+	// Delete Player
+	if (player) { delete (player); }
 
 	// Delete Material
 	if (mat1) { delete (mat1); }
@@ -209,6 +212,9 @@ void Game::CreateMatrices()
 	// Set up the Game Camera with the View Matrix and Projection Matrix
 	gameCamera = new Camera();
 	gameCamera->SetProjectionMat(width, height);
+
+	player = new Player();
+	player->SetProjectionMat(width, height);
 }
 
 
@@ -222,6 +228,9 @@ void Game::CreateBasicGeometry()
 	helixMesh = new Mesh("Debug/Assets/Models/helix.obj", device);
 	cubeMesh = new Mesh("Debug/Assets/Models/cube.obj", device);
 
+	LoadTargets();
+
+	/*
 	// Creating Entities using Meshes
 	entityOne = new Entity(sphereMesh, mat2);
 	entityTwo = new Entity(cubeMesh, mat1);
@@ -233,6 +242,7 @@ void Game::CreateBasicGeometry()
 	entityTwo->SetScale(DirectX::XMFLOAT3(+1.5f, +1.5f, +1.0f));
 	entityThree->SetPosition(DirectX::XMFLOAT3(+0.0f, -1.5f, +0.0f));
 	entityThree->SetRotation(DirectX::XMFLOAT3(+0.0f, +0.0f, +1.0f));
+	*/
 }
 
 
@@ -247,6 +257,7 @@ void Game::OnResize()
 
 	// Update our projection matrix since the window size changed
 	gameCamera->SetProjectionMat(width, height);
+	player->SetProjectionMat(width, height);
 }
 
 // --------------------------------------------------------
@@ -267,6 +278,7 @@ void Game::Update(float deltaTime, float totalTime)
 		break;
 	case Game::PLAY:
 		// Update entities only during PLAY
+		/*
 		entityOne->SetRotation(XMFLOAT3(entityOne->GetRotation().x, entityOne->GetRotation().y + 0.0001, entityOne->GetRotation().z));
 		entityOne->FinalizeMatrix();
 
@@ -275,6 +287,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 		entityThree->SetScale(XMFLOAT3(sin(totalTime) + 1, sin(totalTime) + 1, sin(totalTime) + 1));
 		entityThree->FinalizeMatrix();
+		*/
 
 		break;
 	case Game::PAUSE:
@@ -286,6 +299,7 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 
 	gameCamera->Update(deltaTime);
+	player->Update(deltaTime);
 	// Quit if the escape key is pressed -- do this regardless of currentState
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
@@ -328,6 +342,24 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		break;
 	case Game::PLAY:
+		for (int i = 0; i < targets.size(); i++) {
+			vector<Entity*> targetEntitys = targets[i]->GetTarget();
+			for (int j = 0; j < targetEntitys.size(); j++) {
+				// Draw the entity
+				vertexBuffer = targetEntitys[j]->GetMesh()->GetVertexBuffer();
+				indexBuffer = targetEntitys[j]->GetMesh()->GetIndexBuffer();
+				context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+				context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+				// Prepare the shader for the material being used
+				targetEntitys[j]->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
+				context->DrawIndexed(
+					targetEntitys[j]->GetMesh()->GetIndexCount(),	//The Number of indices to use (gotten from mesh data)
+					0,												// Offset to the first index to look at
+					0);												// Offset to add to each index when looking at vertices
+			}
+		}
+		/*
 		// Drawing the Sphere
 		vertexBuffer = entityOne->GetMesh()->GetVertexBuffer();
 		indexBuffer = entityOne->GetMesh()->GetIndexBuffer();
@@ -335,7 +367,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Prepare the shaders for the material being used
-		entityOne->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
+		entityOne->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
 
 		context->DrawIndexed(
 			entityOne->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
@@ -349,7 +381,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Prepare the shaders for the material being used
-		entityTwo->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
+		entityTwo->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
 
 		context->DrawIndexed(
 			entityTwo->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
@@ -361,15 +393,15 @@ void Game::Draw(float deltaTime, float totalTime)
 		indexBuffer = entityThree->GetMesh()->GetIndexBuffer();
 		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
 		// Prepare the shaders for the material being used
-		entityThree->PrepareMaterial(gameCamera->GetViewMat(), gameCamera->GetProjectionMat());
+		entityThree->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
+		
 
 		context->DrawIndexed(
 			entityThree->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
-
+		*/
 		break;
 	case Game::PAUSE:
 		break;
@@ -383,6 +415,18 @@ void Game::Draw(float deltaTime, float totalTime)
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
 	swapChain->Present(0, 0);
+}
+
+void Game::LoadTargets(){
+	for (int i = 0; i < 3; i++) {
+		targets.push_back(new Target(DirectX::XMFLOAT3(+1.0f*(i - 1), +0.0f, 0.0f), sphereMesh, mat1, mat2));
+	}
+	for (int i = 0; i < targets.size(); i++) {
+		vector<Entity*> targetEntitys = targets[i]->GetTarget();
+		for (int j = 0; j < targetEntitys.size(); j++) {
+			targetEntitys[j]->FinalizeMatrix();
+		}
+	}
 }
 
 

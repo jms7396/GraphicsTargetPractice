@@ -1,8 +1,27 @@
 ﻿cl : Command line warning D9028: minimal rebuild failure, reverting to normal build
-  Target.cpp
-c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\target.h(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  Game.cpp
 c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\entity.h(3): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\entity.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\target.cpp(38): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\camera.h(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\camera.h(3): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\camera.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\lights.h(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\player.h(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\player.h(3): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\player.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\target.h(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(114): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(138): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(214): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(216): warning C4316: 'Player': object allocated on the heap may not be aligned 16
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(217): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(259): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(260): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(345): warning C4018: '<': signed/unsigned mismatch
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(347): warning C4018: '<': signed/unsigned mismatch
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(424): warning C4018: '<': signed/unsigned mismatch
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(426): warning C4018: '<': signed/unsigned mismatch
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(477): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
+c:\users\james\documents\github\graphicstargetpractice\gamegraphicsengine\game.cpp(478): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
   DX11Starter.vcxproj -> C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.exe
   DX11Starter.vcxproj -> C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)

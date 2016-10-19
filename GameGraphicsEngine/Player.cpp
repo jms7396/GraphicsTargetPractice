@@ -28,8 +28,8 @@ void Player::Update(float deltaTime)
 	DirectX::XMVECTOR moveVector = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	if (GetAsyncKeyState('W') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, direction); }
 	if (GetAsyncKeyState('S') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, (-1.0f * direction)); };
-	if (GetAsyncKeyState('A') & 0x8000) { RotatePlayer(-0.1); };
-	if (GetAsyncKeyState('D') & 0x8000) { RotatePlayer(0.1); };
+	if (GetAsyncKeyState('A') & 0x8000) { RotatePlayer(-0.2); };
+	if (GetAsyncKeyState('D') & 0x8000) { RotatePlayer(0.2); };
 
 	DirectX::XMVECTOR rotation = DirectX::XMQuaternionRotationRollPitchYaw(rotY, rotX, 0.0f);
 	direction = DirectX::XMVector3Rotate(direction, rotation);
@@ -58,5 +58,10 @@ void Player::RotatePlayer(float changeInX)
 
 void Player::SetProjectionMat(float width, float height)
 {
-
+	XMMATRIX P = XMMatrixPerspectiveFovLH(
+		0.25f * 3.1415926535f,		// Field of View Angle
+		(float)width / height,		// Aspect ratio
+		0.1f,						// Near clip plane distance
+		100.0f);					// Far clip plane distance
+	XMStoreFloat4x4(&projectionMat, XMMatrixTranspose(P)); // Transpose for HLSL!
 }

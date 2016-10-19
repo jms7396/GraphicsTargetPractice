@@ -32,10 +32,11 @@ void Target::CreateTarget(Mesh* mesh, Material* targetMat, Material* chainMat)
 {
 	mainTarget = new Entity(mesh, targetMat);
 	mainTarget->SetPosition(position);
+	mainTarget->SetScale(DirectX::XMFLOAT3(+1.0f, +1.0f, +1.0f));
 	for (int i = 0; i < 3; i++)
 	{
 		targetChain.push_back(new Entity(mesh, chainMat));
-		targetChain[i]->SetScale(DirectX::XMFLOAT3(0.1, 0.1, 0.1));
+		targetChain[i]->SetScale(DirectX::XMFLOAT3(0.1f, 0.1f, 0.1f));
 		targetChain[i]->SetPosition(DirectX::XMFLOAT3(position.x+0.5f, position.y+(0.5f*(i+1)), position.z));
 	}
 }
