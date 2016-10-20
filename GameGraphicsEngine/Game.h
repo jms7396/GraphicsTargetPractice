@@ -46,6 +46,9 @@ private:
 	void CreateMatrices();
 	void CreateBasicGeometry();
 
+	void InitForPlay();
+	void ResetRenderStates();
+
 	// GameStates enum to track where we are in the game loop
 	GAME_STATES currentState;
 
