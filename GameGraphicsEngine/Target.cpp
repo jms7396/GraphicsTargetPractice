@@ -9,6 +9,15 @@ Target::Target()
 
 Target::~Target()
 {
+	// Delete Entity pointers for each part of the Target and Chain
+	if (mainTarget)
+		delete mainTarget;
+
+	for (int i = 0; i < targetChain.size(); ++i) 
+	{
+		if (targetChain[i])
+			delete targetChain[i];
+	}
 }
 
 Target::Target(DirectX::XMFLOAT3 pos, Mesh * mesh, Material * targetMat, Material * chainMat)

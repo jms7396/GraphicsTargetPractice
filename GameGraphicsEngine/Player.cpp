@@ -4,16 +4,20 @@
 
 Player::Player()
 {
-	position = XMVectorSet(0, 0, -5, 0);
-	direction = XMVectorSet(0, 0, 1, 0);
+	// Load in position and direction to local XMVECTORs
+	XMVECTOR posVec = XMLoadFloat4(&position);
+	XMVECTOR dirVec = XMLoadFloat4(&direction);
 	rotX = 0.0f;
 	rotY = 0.0f;
 	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 	XMMATRIX V = XMMatrixLookToLH(
-		position,     // The position of the camera
-		direction,     // Direction the camera is looking
+		posVec,     // The position of the camera
+		dirVec,     // Direction the camera is looking
 		up);
+	// Store everything back in the corresponding member variables
 	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(V)); // Transpose for HLSL!
+	XMStoreFloat4(&position, posVec);
+	XMStoreFloat4(&direction, dirVec);
 }
 
 
@@ -23,20 +27,26 @@ Player::~Player()
 
 void Player::Update(float deltaTime)
 {
+	// Load in position and direction to local XMVECTORs
+	XMVECTOR posVec = XMLoadFloat4(&position);
+	XMVECTOR dirVec = XMLoadFloat4(&direction);
 	DirectX::XMVECTOR upVector = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	DirectX::XMVECTOR moveVector = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	if (GetAsyncKeyState('W') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, direction); }
-	if (GetAsyncKeyState('S') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, (-1.0f * direction)); };
+	if (GetAsyncKeyState('W') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, dirVec); }
+	if (GetAsyncKeyState('S') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, (-1.0f * dirVec)); };
 	if (GetAsyncKeyState('A') & 0x8000) { RotatePlayer(-0.1); };
 	if (GetAsyncKeyState('D') & 0x8000) { RotatePlayer(0.1); };
 
 	DirectX::XMVECTOR rotation = DirectX::XMQuaternionRotationRollPitchYaw(rotY, rotX, 0.0f);
-	direction = DirectX::XMVector3Rotate(direction, rotation);
+	dirVec = DirectX::XMVector3Rotate(dirVec, rotation);
 
-	position = XMVectorAdd(moveVector * deltaTime, position);
+	posVec = XMVectorAdd(moveVector * deltaTime, posVec);
 
-	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(DirectX::XMMatrixLookToLH(position, direction, upVector)));
+	// Store everything back in the corresponding member variables
+	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(DirectX::XMMatrixLookToLH(posVec, dirVec, upVector)));
+	XMStoreFloat4(&position, posVec);
+	XMStoreFloat4(&direction, dirVec);
 	rotX = 0.0f;
 	rotY = 0.0f;
 }

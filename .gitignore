@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+# Visual Studio build results
+Debug/
+Release/
+.vs/
+*.sdf
+*.db
