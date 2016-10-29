@@ -28,9 +28,10 @@ Target::Target(DirectX::XMFLOAT3 pos, Mesh * mesh, Material * targetMat, Materia
 
 vector<Entity*> Target::GetTarget()
 {
-	targetChain.push_back(mainTarget);
-	return vector<Entity*>(targetChain);
-	targetChain.pop_back();
+	// Not sure if this is the most efficient way to handle this, but it works so there's that
+	vector<Entity*> tempTargets = targetChain;
+	tempTargets.push_back(mainTarget);
+	return vector<Entity*>(tempTargets);
 }
 
 void Target::Update()
@@ -46,6 +47,6 @@ void Target::CreateTarget(Mesh* mesh, Material* targetMat, Material* chainMat)
 	{
 		targetChain.push_back(new Entity(mesh, chainMat));
 		targetChain[i]->SetScale(DirectX::XMFLOAT3(0.1f, 0.1f, 0.1f));
-		targetChain[i]->SetPosition(DirectX::XMFLOAT3(position.x+0.5f, position.y+(0.5f*(i+1)), position.z));
+		targetChain[i]->SetPosition(DirectX::XMFLOAT3(position.x, position.y+(0.25f + (0.5f*(i+1))), position.z));
 	}
 }
