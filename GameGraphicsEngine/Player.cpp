@@ -7,6 +7,9 @@ Player::Player()
 	// Load in position and direction to local XMVECTORs
 	XMVECTOR posVec = XMLoadFloat4(&position);
 	XMVECTOR dirVec = XMLoadFloat4(&direction);
+	// Set initial position and direction
+	posVec = XMVectorSet(0, 0, -5, 0);
+	dirVec = XMVectorSet(0, 0, 1, 0);
 	rotX = 0.0f;
 	rotY = 0.0f;
 	XMVECTOR up = XMVectorSet(0, 1, 0, 0);

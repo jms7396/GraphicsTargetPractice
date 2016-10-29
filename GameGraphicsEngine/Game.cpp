@@ -53,7 +53,7 @@ Game::~Game()
 	//if (entityThree) { delete(entityThree); }
 
 	// Delete the Camera
-	if (gameCamera) { delete (gameCamera); }
+	//if (gameCamera) { delete (gameCamera); }
 
 	// Delete Player
 	if (player) { delete (player); }
@@ -210,8 +210,8 @@ void Game::CreateMatrices()
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W)); // Transpose for HLSL!
 
 	// Set up the Game Camera with the View Matrix and Projection Matrix
-	gameCamera = new Camera();
-	gameCamera->SetProjectionMat(width, height);
+	//gameCamera = new Camera();
+	//gameCamera->SetProjectionMat(width, height);
 
 	player = new Player();
 	player->SetProjectionMat(width, height);
@@ -256,7 +256,7 @@ void Game::OnResize()
 	DXCore::OnResize();
 
 	// Update our projection matrix since the window size changed
-	gameCamera->SetProjectionMat(width, height);
+	//gameCamera->SetProjectionMat(width, height);
 	player->SetProjectionMat(width, height);
 }
 
@@ -298,7 +298,7 @@ void Game::Update(float deltaTime, float totalTime)
 		break;
 	}
 
-	gameCamera->Update(deltaTime);
+	//gameCamera->Update(deltaTime);
 	player->Update(deltaTime);
 	// Quit if the escape key is pressed -- do this regardless of currentState
 	if (GetAsyncKeyState(VK_ESCAPE))
@@ -476,7 +476,7 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 		if (x != prevMousePos.x || y != prevMousePos.y) {
 			float deltaX = x - prevMousePos.x;
 			float deltaY = y - prevMousePos.y;
-			gameCamera->RotateCamera(deltaX, deltaY);
+			//gameCamera->RotateCamera(deltaX, deltaY);
 		}
 	}
 
