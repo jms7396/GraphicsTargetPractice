@@ -1,10 +1,4 @@
-﻿  Player.cpp
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.h(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.h(3): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.cpp(41): warning C4305: 'argument': truncation from 'double' to 'float'
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.cpp(42): warning C4305: 'argument': truncation from 'double' to 'float'
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.cpp(69): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+﻿cl : Command line warning D9028: minimal rebuild failure, reverting to normal build
   Game.cpp
 d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\entity.h(3): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\entity.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
@@ -16,16 +10,16 @@ d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\p
 d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.h(3): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\player.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
 d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\target.h(2): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(114): warning C4305: 'argument': truncation from 'double' to 'float'
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(138): warning C4305: 'argument': truncation from 'double' to 'float'
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(217): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(260): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(345): warning C4018: '<': signed/unsigned mismatch
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(347): warning C4018: '<': signed/unsigned mismatch
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(424): warning C4018: '<': signed/unsigned mismatch
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(426): warning C4018: '<': signed/unsigned mismatch
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(477): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
-d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(478): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
-  Generating Code...
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(66): warning C4018: '<': signed/unsigned mismatch
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(124): warning C4305: 'argument': truncation from 'double' to 'float'
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(148): warning C4305: 'argument': truncation from 'double' to 'float'
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(235): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(292): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(396): warning C4018: '<': signed/unsigned mismatch
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(398): warning C4018: '<': signed/unsigned mismatch
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(475): warning C4018: '<': signed/unsigned mismatch
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(477): warning C4018: '<': signed/unsigned mismatch
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(528): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
+d:\ben\ggp assignments\group project\graphicstargetpractice\gamegraphicsengine\game.cpp(529): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
   DX11Starter.vcxproj -> D:\Ben\GGP Assignments\Group Project\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.exe
   DX11Starter.vcxproj -> D:\Ben\GGP Assignments\Group Project\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)

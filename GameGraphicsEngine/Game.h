@@ -58,6 +58,9 @@ private:
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+	// Shaders for aiming reticle
+	SimpleVertexShader* aimingVertexShader;
+	SimplePixelShader* aimingPixelShader;
 
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
@@ -72,6 +75,7 @@ private:
 	Mesh* sphereMesh;
 	Mesh* helixMesh;
 	Mesh* cubeMesh;
+	Mesh* reticleMesh; // Simple diamond-shaped mesh to serve as aiming reticle
 
 	// Entity variables
 	Entity* entityOne;

@@ -43,11 +43,14 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
+	delete aimingVertexShader;
+	delete aimingPixelShader;
 
 	// Delete the Mesh's to clear memory
 	if (sphereMesh) { delete(sphereMesh); }
 	if (helixMesh) { delete(helixMesh); }
 	if (cubeMesh) { delete(cubeMesh); }
+	if (reticleMesh) { delete (reticleMesh); }
 	//if (entityOne) { delete(entityOne); }
 	//if (entityTwo){ delete(entityTwo); }
 	//if (entityThree) { delete(entityThree); }
@@ -178,6 +181,14 @@ void Game::LoadShaders()
 	pixelShader->SetShaderResourceView("Rocks", rockSRV);
 	pixelShader->SetShaderResourceView("Wood", woodSRV);
 
+	aimingVertexShader = new SimpleVertexShader(device, context);
+	if (!aimingVertexShader->LoadShaderFile(L"Debug/AimingVertexShader.cso"))
+		aimingVertexShader->LoadShaderFile(L"AimingVertexShader.cso");
+
+	aimingPixelShader = new SimplePixelShader(device, context);
+	if (!aimingPixelShader->LoadShaderFile(L"Debug/AimingPixelShader.cso"))
+		aimingPixelShader->LoadShaderFile(L"AimingPixelShader.cso");
+
 	// Load our shaders into our materials
 	mat1 = new Material(pixelShader, vertexShader, rockSRV, sampler);
 	mat2 = new Material(pixelShader, vertexShader, woodSRV, sampler);
@@ -234,6 +245,20 @@ void Game::CreateBasicGeometry()
 	sphereMesh = new Mesh("Debug/Assets/Models/sphere.obj", device);
 	helixMesh = new Mesh("Debug/Assets/Models/helix.obj", device);
 	cubeMesh = new Mesh("Debug/Assets/Models/cube.obj", device);
+
+	// Create geometry for aiming reticle.  It's just 2 tris, so we should be fine to just do it here on the stack
+	Vertex aimingVerts[] =
+	{
+		{ XMFLOAT3(+0.01f, +0.0f, -4.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(+0.0f, +0.01f, -4.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(-0.01f, +0.0f, -4.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(+0.0f, -0.01f, -4.0f), XMFLOAT3(), XMFLOAT2() },
+	};
+
+	UINT aimingIndices[] = { 2, 1, 0, 0, 3, 2 };
+
+	// Load reticle mesh
+	reticleMesh = new Mesh(aimingVerts, 4, aimingIndices, 6, device);
 
 	LoadTargets();
 
@@ -350,6 +375,24 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		break;
 	case Game::PLAY:
+		// Draw aiming reticle
+		// First, set proper shaders
+		aimingVertexShader->SetMatrix4x4("world", worldMatrix); // TODO: Reticle doesn't move with camera
+		aimingVertexShader->SetMatrix4x4("view", player->GetViewMat());
+		aimingVertexShader->SetMatrix4x4("projection", player->GetProjectionMat());
+		aimingVertexShader->CopyAllBufferData();
+
+		aimingVertexShader->SetShader();
+		aimingPixelShader->SetShader();
+		// Then, set the buffers
+		vertexBuffer = reticleMesh->GetVertexBuffer();
+		indexBuffer = reticleMesh->GetIndexBuffer();
+		// Finally, draw the reticle
+		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->DrawIndexed(reticleMesh->GetIndexCount(), 0, 0);
+
+		// Draw targets.  The proper shaders are already being set during this process
 		for (int i = 0; i < targets.size(); i++) {
 			vector<Entity*> targetEntitys = targets[i]->GetTarget();
 			for (int j = 0; j < targetEntitys.size(); j++) {
