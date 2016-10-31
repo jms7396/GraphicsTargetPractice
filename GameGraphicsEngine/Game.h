@@ -81,6 +81,7 @@ private:
 	Entity* entityOne;
 	Entity* entityTwo;
 	Entity* entityThree;
+	Entity* reticleEntity;
 
 	// Camera variable
 	Camera* gameCamera;
@@ -88,6 +89,7 @@ private:
 	// Material variables
 	Material* mat1;
 	Material* mat2;
+	Material* reticleMat;
 
 	// Create a Light
 	DirectionalLight dirLight;

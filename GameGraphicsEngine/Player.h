@@ -12,6 +12,8 @@ public:
 	void Update(float deltaTime);
 	DirectX::XMFLOAT4X4 GetViewMat();
 	DirectX::XMFLOAT4X4 GetProjectionMat();
+	DirectX::XMFLOAT4 GetPosition();
+	DirectX::XMFLOAT4 GetDirection();
 	void RotatePlayer(float changeInX);
 	void SetProjectionMat(float width, float height);
 

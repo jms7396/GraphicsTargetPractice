@@ -23,6 +23,15 @@ Game::Game(HINSTANCE hInstance)
 	// Initialize fields
 	vertexShader = 0;
 	pixelShader = 0;
+	aimingVertexShader = 0;
+	aimingPixelShader = 0;
+
+	reticleMesh = 0;
+	reticleEntity = 0;
+	reticleMat = 0;
+
+	spriteBatch = 0;
+	spriteFont = 0;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -51,9 +60,11 @@ Game::~Game()
 	if (helixMesh) { delete(helixMesh); }
 	if (cubeMesh) { delete(cubeMesh); }
 	if (reticleMesh) { delete (reticleMesh); }
+	// Delete Entities
 	//if (entityOne) { delete(entityOne); }
 	//if (entityTwo){ delete(entityTwo); }
 	//if (entityThree) { delete(entityThree); }
+	if (reticleEntity) { delete (reticleEntity); }
 
 	// Delete the Camera
 	//if (gameCamera) { delete (gameCamera); }
@@ -71,6 +82,7 @@ Game::~Game()
 	// Delete Material
 	if (mat1) { delete (mat1); }
 	if (mat2) { delete (mat2); }
+	if (reticleMat) { delete (reticleMat); }
 
 	// Delete SpriteFont stuff
 	if (spriteBatch) { delete spriteBatch; }
@@ -192,6 +204,7 @@ void Game::LoadShaders()
 	// Load our shaders into our materials
 	mat1 = new Material(pixelShader, vertexShader, rockSRV, sampler);
 	mat2 = new Material(pixelShader, vertexShader, woodSRV, sampler);
+	reticleMat = new Material(aimingPixelShader, aimingVertexShader, 0, 0);
 
 	// You'll notice that the code above attempts to load each
 	// compiled shader file (.cso) from two different relative paths.
@@ -249,16 +262,17 @@ void Game::CreateBasicGeometry()
 	// Create geometry for aiming reticle.  It's just 2 tris, so we should be fine to just do it here on the stack
 	Vertex aimingVerts[] =
 	{
-		{ XMFLOAT3(+0.01f, +0.0f, -4.0f), XMFLOAT3(), XMFLOAT2() },
-		{ XMFLOAT3(+0.0f, +0.01f, -4.0f), XMFLOAT3(), XMFLOAT2() },
-		{ XMFLOAT3(-0.01f, +0.0f, -4.0f), XMFLOAT3(), XMFLOAT2() },
-		{ XMFLOAT3(+0.0f, -0.01f, -4.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(+0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(+0.0f, +0.01f, +0.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(-0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(+0.0f, -0.01f, +0.0f), XMFLOAT3(), XMFLOAT2() },
 	};
 
 	UINT aimingIndices[] = { 2, 1, 0, 0, 3, 2 };
 
-	// Load reticle mesh
+	// Load reticle mesh and entity
 	reticleMesh = new Mesh(aimingVerts, 4, aimingIndices, 6, device);
+	reticleEntity = new Entity(reticleMesh, reticleMat);
 
 	LoadTargets();
 
@@ -297,6 +311,7 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	XMFLOAT3 reticlePos;
 	switch (currentState)
 	{
 	case Game::START:
@@ -309,6 +324,13 @@ void Game::Update(float deltaTime, float totalTime)
 
 		break;
 	case Game::PLAY:
+		// Move the reticle to the correct position (still needs work)
+		reticlePos = XMFLOAT3(player->GetPosition().x * player->GetDirection().x,
+			player->GetPosition().y * player->GetDirection().y,
+			(player->GetPosition().z * player->GetDirection().z) + 1.0f);
+		reticleEntity->SetPosition(reticlePos);
+		reticleEntity->FinalizeMatrix();
+
 		// Since Targets are just stationary for now, we don't really need to do anything with them in Update at the moment
 
 		// Update entities only during PLAY
@@ -376,20 +398,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		break;
 	case Game::PLAY:
 		// Draw aiming reticle
-		// First, set proper shaders
-		aimingVertexShader->SetMatrix4x4("world", worldMatrix); // TODO: Reticle doesn't move with camera
-		aimingVertexShader->SetMatrix4x4("view", player->GetViewMat());
-		aimingVertexShader->SetMatrix4x4("projection", player->GetProjectionMat());
-		aimingVertexShader->CopyAllBufferData();
-
-		aimingVertexShader->SetShader();
-		aimingPixelShader->SetShader();
-		// Then, set the buffers
 		vertexBuffer = reticleMesh->GetVertexBuffer();
 		indexBuffer = reticleMesh->GetIndexBuffer();
-		// Finally, draw the reticle
 		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		reticleEntity->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
+
 		context->DrawIndexed(reticleMesh->GetIndexCount(), 0, 0);
 
 		// Draw targets.  The proper shaders are already being set during this process

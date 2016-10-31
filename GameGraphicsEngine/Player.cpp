@@ -64,6 +64,16 @@ DirectX::XMFLOAT4X4 Player::GetProjectionMat()
 	return projectionMat;
 }
 
+DirectX::XMFLOAT4 Player::GetPosition()
+{
+	return position;
+}
+
+DirectX::XMFLOAT4 Player::GetDirection()
+{
+	return direction;
+}
+
 void Player::RotatePlayer(float changeInX)
 {
 	rotX += changeInX*0.001;
