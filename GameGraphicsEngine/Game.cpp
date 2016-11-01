@@ -260,6 +260,7 @@ void Game::CreateBasicGeometry()
 	cubeMesh = new Mesh("Debug/Assets/Models/cube.obj", device);
 
 	// Create geometry for aiming reticle.  It's just 2 tris, so we should be fine to just do it here on the stack
+	// This can probably be optimized even further, though (see particle system/ geometry shader slides)
 	Vertex aimingVerts[] =
 	{
 		{ XMFLOAT3(+0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT2() },
@@ -324,10 +325,10 @@ void Game::Update(float deltaTime, float totalTime)
 
 		break;
 	case Game::PLAY:
-		// Move the reticle to the correct position (still needs work)
-		reticlePos = XMFLOAT3(player->GetPosition().x * player->GetDirection().x,
-			player->GetPosition().y * player->GetDirection().y,
-			(player->GetPosition().z * player->GetDirection().z) + 1.0f);
+		// Move the reticle to the correct position
+		reticlePos = XMFLOAT3(player->GetPosition().x + player->GetDirection().x,
+			player->GetPosition().y + player->GetDirection().y,
+			player->GetPosition().z + player->GetDirection().z);
 		reticleEntity->SetPosition(reticlePos);
 		reticleEntity->FinalizeMatrix();
 		//targets[1]->CheckShot(player->GetDirection3(),player->GetPosition3());
