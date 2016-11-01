@@ -1,7 +1,7 @@
 #pragma once
 
-#include <DirectXMath.h>;
-#include "Mesh.h";
+#include <DirectXMath.h>
+#include "Mesh.h"
 #include "Material.h"
 
 class Entity

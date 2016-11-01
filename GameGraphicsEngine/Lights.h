@@ -1,5 +1,5 @@
 #pragma once
-#include <DirectXMath.h>;
+#include <DirectXMath.h>
 
 struct DirectionalLight {
 	DirectX::XMFLOAT4 AmbietColor;

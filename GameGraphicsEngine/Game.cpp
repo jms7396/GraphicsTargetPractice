@@ -74,7 +74,7 @@ Game::~Game()
 
 	// Delete Targets
 	if (targets.size() > 0) {
-		for (int i = 0; i < targets.size(); ++i) {
+		for (unsigned int i = 0; i < targets.size(); ++i) {
 			delete targets[i];
 		}
 	}
@@ -330,6 +330,7 @@ void Game::Update(float deltaTime, float totalTime)
 			(player->GetPosition().z * player->GetDirection().z) + 1.0f);
 		reticleEntity->SetPosition(reticlePos);
 		reticleEntity->FinalizeMatrix();
+		//targets[1]->CheckShot(player->GetDirection3(),player->GetPosition3());
 
 		// Since Targets are just stationary for now, we don't really need to do anything with them in Update at the moment
 
@@ -408,9 +409,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->DrawIndexed(reticleMesh->GetIndexCount(), 0, 0);
 
 		// Draw targets.  The proper shaders are already being set during this process
-		for (int i = 0; i < targets.size(); i++) {
+		for (unsigned int i = 0; i < targets.size(); i++) {
 			vector<Entity*> targetEntitys = targets[i]->GetTarget();
-			for (int j = 0; j < targetEntitys.size(); j++) {
+			for (unsigned int j = 0; j < targetEntitys.size(); j++) {
 				// Draw the entity
 				vertexBuffer = targetEntitys[j]->GetMesh()->GetVertexBuffer();
 				indexBuffer = targetEntitys[j]->GetMesh()->GetIndexBuffer();
@@ -487,9 +488,9 @@ void Game::LoadTargets(){
 	for (int i = 0; i < 3; i++) {
 		targets.push_back(new Target(DirectX::XMFLOAT3(+1.1f*(i - 1), +0.0f, 0.0f), sphereMesh, mat1, mat2));
 	}
-	for (int i = 0; i < targets.size(); i++) {
+	for (unsigned int i = 0; i < targets.size(); i++) {
 		vector<Entity*> targetEntitys = targets[i]->GetTarget();
-		for (int j = 0; j < targetEntitys.size(); j++) {
+		for (unsigned int j = 0; j < targetEntitys.size(); j++) {
 			targetEntitys[j]->FinalizeMatrix();
 		}
 	}

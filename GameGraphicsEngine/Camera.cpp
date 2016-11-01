@@ -1,7 +1,5 @@
 #include "Camera.h"
 
-
-
 Camera::Camera()
 {
 	// Load in position and direction to local XMVECTORs

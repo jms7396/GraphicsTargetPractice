@@ -1,7 +1,7 @@
 #pragma once
-#include <DirectXMath.h>;
-#include <Windows.h>;
-#include <string>;
+#include <DirectXMath.h>
+#include <Windows.h>
+#include <string>
 using namespace DirectX;
 class Player
 {
@@ -14,6 +14,8 @@ public:
 	DirectX::XMFLOAT4X4 GetProjectionMat();
 	DirectX::XMFLOAT4 GetPosition();
 	DirectX::XMFLOAT4 GetDirection();
+	DirectX::XMFLOAT3 GetPosition3();
+	DirectX::XMFLOAT3 GetDirection3();
 	void RotatePlayer(float changeInX);
 	void SetProjectionMat(float width, float height);
 

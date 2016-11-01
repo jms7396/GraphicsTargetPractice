@@ -1,7 +1,5 @@
 #include "Player.h"
 
-
-
 Player::Player()
 {
 	// Load in position and direction to local XMVECTORs
@@ -41,6 +39,7 @@ void Player::Update(float deltaTime)
 	if (GetAsyncKeyState('A') & 0x8000) { RotatePlayer(-0.1); };
 	if (GetAsyncKeyState('D') & 0x8000) { RotatePlayer(0.1); };
 
+
 	DirectX::XMVECTOR rotation = DirectX::XMQuaternionRotationRollPitchYaw(rotY, rotX, 0.0f);
 	dirVec = DirectX::XMVector3Rotate(dirVec, rotation);
 
@@ -72,6 +71,16 @@ DirectX::XMFLOAT4 Player::GetPosition()
 DirectX::XMFLOAT4 Player::GetDirection()
 {
 	return direction;
+}
+
+DirectX::XMFLOAT3 Player::GetPosition3()
+{
+	return XMFLOAT3(position.x, position.y, position.z);
+}
+
+DirectX::XMFLOAT3 Player::GetDirection3()
+{
+	return XMFLOAT3(direction.x, direction.y, direction.z);
 }
 
 void Player::RotatePlayer(float changeInX)
