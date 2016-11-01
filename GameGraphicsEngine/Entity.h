@@ -22,7 +22,7 @@ public:
 	Mesh* GetMesh();
 
 	void FinalizeMatrix();
-	void Move();
+	void Move(DirectX::XMFLOAT3 translation);
 	void PrepareMaterial(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projMat);
 
 

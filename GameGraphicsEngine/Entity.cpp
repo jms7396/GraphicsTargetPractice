@@ -70,8 +70,12 @@ void Entity::FinalizeMatrix()
 	DirectX::XMStoreFloat4x4(&worldMatrix, DirectX::XMMatrixTranspose(world));
 }
 
-void Entity::Move()
+void Entity::Move(DirectX::XMFLOAT3 translation)
 {
+	DirectX::XMVECTOR movement = DirectX::XMLoadFloat3(&translation);
+	DirectX::XMVECTOR pos = DirectX::XMLoadFloat3(&position);
+	DirectX::XMStoreFloat3(&position, DirectX::XMVectorAdd(movement, pos));
+	FinalizeMatrix();
 }
 
 void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projMat)
