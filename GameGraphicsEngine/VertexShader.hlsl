@@ -27,7 +27,8 @@ struct VertexShaderInput
 	float3 position		: POSITION;     // XYZ position
 	//float4 color		: COLOR;        // RGBA color
 	float3 normal		: NORMAL;
-	float2 uv			: TEXTCOORD;
+	float3 tangent		: TANGENT;
+	float2 uv			: TEXCOORD;
 };
 
 // Struct representing the data we're sending down the pipeline
@@ -45,6 +46,7 @@ struct VertexToPixel
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
 	float4 color		: COLOR;        // RGBA color
 	float3 normal		: NORMAL;
+	float3 tangent		: TANGENT;
 	float2 uv			: TEXCOORD;
 };
 
@@ -78,7 +80,8 @@ VertexToPixel main( VertexShaderInput input )
 
 	// Pass the input normal to the output normal
 	// Multiply the input normal by the world matrix to cast
-	output.normal = mul(input.normal, (float3x3)world);
+	output.normal = mul(input.normal, (float3x3)world); // Uniform Scale
+	output.normal = mul(input.tangent, (float3x3)world); // Needed for normal mapping
 
 	// Pass through the UVs
 	output.uv = input.uv;

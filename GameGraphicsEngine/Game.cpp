@@ -54,6 +54,8 @@ Game::~Game()
 	delete pixelShader;
 	delete aimingVertexShader;
 	delete aimingPixelShader;
+	delete skyVertexShader;
+	delete skyPixelShader;
 
 	// Delete the Mesh's to clear memory
 	if (sphereMesh) { delete(sphereMesh); }
@@ -92,6 +94,10 @@ Game::~Game()
 	sampler->Release();
 	rockSRV->Release();
 	woodSRV->Release();
+	//normalMapBarkSRV->Release();
+	skySRV->Release();
+
+
 }
 
 // --------------------------------------------------------
@@ -106,6 +112,20 @@ void Game::Init()
 	// Load Textures
 	CreateWICTextureFromFile(device, context, L"Debug/Assets/Textures/MossRock.tif", 0, &rockSRV);
 	CreateWICTextureFromFile(device, context, L"Debug/Assets/Textures/TreeBark.tif", 0, &woodSRV);
+	CreateWICTextureFromFile(device, context, L"Debug/Assets/Textures/TreeBarkNormals.tif", 0, &normalMapBarkSRV);
+	CreateDDSTextureFromFile(device, L"Debug/Assets/Textures/SkyBox.dds", 0, &skySRV);
+
+	D3D11_RASTERIZER_DESC rsDesc = {};
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	rsDesc.CullMode = D3D11_CULL_FRONT;
+	rsDesc.DepthClipEnable = true;
+	device->CreateRasterizerState(&rsDesc, &skyRastState);
+
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&dsDesc, &skyDepthState);
 
 	// Create a Sampler State for Texture Sampling
 	D3D11_SAMPLER_DESC samplerDesc = {};
@@ -192,6 +212,7 @@ void Game::LoadShaders()
 	pixelShader->SetSamplerState("Sampler", sampler);
 	pixelShader->SetShaderResourceView("Rocks", rockSRV);
 	pixelShader->SetShaderResourceView("Wood", woodSRV);
+	pixelShader->SetShaderResourceView("NormalMap", normalMapBarkSRV);
 
 	aimingVertexShader = new SimpleVertexShader(device, context);
 	if (!aimingVertexShader->LoadShaderFile(L"Debug/AimingVertexShader.cso"))
@@ -200,6 +221,14 @@ void Game::LoadShaders()
 	aimingPixelShader = new SimplePixelShader(device, context);
 	if (!aimingPixelShader->LoadShaderFile(L"Debug/AimingPixelShader.cso"))
 		aimingPixelShader->LoadShaderFile(L"AimingPixelShader.cso");
+
+	skyVertexShader = new SimpleVertexShader(device, context);
+	if (!skyVertexShader->LoadShaderFile(L"Debug/CubeVertexShader.cso"))
+		skyVertexShader->LoadShaderFile(L"CubeVertexShader.cso");
+
+	skyPixelShader = new SimplePixelShader(device, context);
+	if (!skyPixelShader->LoadShaderFile(L"Debug/CubePixelShader.cso"))
+		skyPixelShader->LoadShaderFile(L"CubePixelShader.cso");
 
 	// Load our shaders into our materials
 	mat1 = new Material(pixelShader, vertexShader, rockSRV, sampler);
@@ -263,10 +292,10 @@ void Game::CreateBasicGeometry()
 	// This can probably be optimized even further, though (see particle system/ geometry shader slides)
 	Vertex aimingVerts[] =
 	{
-		{ XMFLOAT3(+0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT2() },
-		{ XMFLOAT3(+0.0f, +0.01f, +0.0f), XMFLOAT3(), XMFLOAT2() },
-		{ XMFLOAT3(-0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT2() },
-		{ XMFLOAT3(+0.0f, -0.01f, +0.0f), XMFLOAT3(), XMFLOAT2() },
+		{ XMFLOAT3(+0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT3() },
+		{ XMFLOAT3(+0.0f, +0.01f, +0.0f), XMFLOAT3(), XMFLOAT3() },
+		{ XMFLOAT3(-0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT3() },
+		{ XMFLOAT3(+0.0f, -0.01f, +0.0f), XMFLOAT3(), XMFLOAT3() },
 	};
 
 	UINT aimingIndices[] = { 2, 1, 0, 0, 3, 2 };
@@ -388,6 +417,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	ID3D11Buffer* vertexBuffer = 0;
 	ID3D11Buffer* indexBuffer = 0;
+	ID3D11Buffer* skyVB = 0;
+	ID3D11Buffer* skyIB = 0;
 
 	switch (currentState)
 	{
@@ -427,49 +458,27 @@ void Game::Draw(float deltaTime, float totalTime)
 					0);												// Offset to add to each index when looking at vertices
 			}
 		}
-		/*
-		// Drawing the Sphere
-		vertexBuffer = entityOne->GetMesh()->GetVertexBuffer();
-		indexBuffer = entityOne->GetMesh()->GetIndexBuffer();
-		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		skyVB = cubeMesh->GetVertexBuffer();
+		skyIB = cubeMesh->GetIndexBuffer();
+		context->IAGetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+		context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
 
-		// Prepare the shaders for the material being used
-		entityOne->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
+		skyVertexShader->SetMatrix4x4("view", player->GetViewMat());
+		skyVertexShader->SetMatrix4x4("projection", player->GetProjectionMat());
+		skyVertexShader->CopyAllBufferData();
+		skyVertexShader->SetShader();
 
-		context->DrawIndexed(
-			entityOne->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
+		skyPixelShader->SetShaderResourceView("Sky", skySRV);
+		skyPixelShader->CopyAllBufferData();
+		skyPixelShader->SetShader();
 
-				   // Drawing a Cube
-		vertexBuffer = entityTwo->GetMesh()->GetVertexBuffer();
-		indexBuffer = entityTwo->GetMesh()->GetIndexBuffer();
-		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->RSSetState(skyRastState);
+		context->OMSetDepthStencilState(skyDepthState, 0);
 
-		// Prepare the shaders for the material being used
-		entityTwo->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
+		context->DrawIndexed(cubeMesh->GetIndexCount(), 0, 0);
 
-		context->DrawIndexed(
-			entityTwo->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
-
-				   // Drawing a helix
-		vertexBuffer = entityThree->GetMesh()->GetVertexBuffer();
-		indexBuffer = entityThree->GetMesh()->GetIndexBuffer();
-		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		// Prepare the shaders for the material being used
-		entityThree->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
-		
-
-		context->DrawIndexed(
-			entityThree->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
-		*/
+		context->RSSetState(0);
+		context->OMSetDepthStencilState(0, 0);
 		break;
 	case Game::PAUSE:
 		break;

@@ -36,8 +36,8 @@ void Player::Update(float deltaTime)
 	DirectX::XMVECTOR moveVector = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	if (GetAsyncKeyState('W') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, dirVec); }
 	if (GetAsyncKeyState('S') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, (-1.0f * dirVec)); };
-	if (GetAsyncKeyState('A') & 0x8000) { RotatePlayer(-0.1); };
-	if (GetAsyncKeyState('D') & 0x8000) { RotatePlayer(0.1); };
+	if (GetAsyncKeyState('A') & 0x8000) { RotatePlayer(-0.4); };
+	if (GetAsyncKeyState('D') & 0x8000) { RotatePlayer(0.4); };
 
 
 	DirectX::XMVECTOR rotation = DirectX::XMQuaternionRotationRollPitchYaw(rotY, rotX, 0.0f);

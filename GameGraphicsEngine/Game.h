@@ -12,6 +12,7 @@
 #include <SpriteFont.h>
 #include "Player.h"
 #include "Target.h"
+#include "DDSTextureLoader.h"
 
 class Game 
 	: public DXCore
@@ -58,9 +59,14 @@ private:
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+
 	// Shaders for aiming reticle
 	SimpleVertexShader* aimingVertexShader;
 	SimplePixelShader* aimingPixelShader;
+
+	// Shaders for the CubeMap/Skybox
+	SimpleVertexShader* skyVertexShader;
+	SimplePixelShader* skyPixelShader;
 
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
@@ -98,7 +104,13 @@ private:
 	// Textures
 	ID3D11ShaderResourceView* rockSRV;
 	ID3D11ShaderResourceView* woodSRV;
+	ID3D11ShaderResourceView* normalMapBarkSRV;
+	ID3D11ShaderResourceView* skySRV;
 	ID3D11SamplerState* sampler;
+
+	// Render States
+	ID3D11RasterizerState* skyRastState;
+	ID3D11DepthStencilState* skyDepthState;
 
 	// Spritefont members (for text)
 	SpriteBatch* spriteBatch;

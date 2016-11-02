@@ -14,6 +14,7 @@ struct VertexToPixel
 	float4 position		: SV_POSITION;
 	float4 color		: COLOR;
 	float3 normal		: NORMAL;
+	float3 tangent		: TANGENT;
 	float2 uv			: TEXCOORD;
 };
 
@@ -32,6 +33,7 @@ cbuffer dirLight : register(b0)
 // Texture Related Data
 Texture2D Rocks			: register(t0);
 Texture2D Wood			: register(t1);
+Texture2D NormalMap		: register(t2);
 SamplerState Sampler	: register(s0);
 
 // --------------------------------------------------------
@@ -47,15 +49,27 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Normalize our input normal
 	input.normal = normalize(input.normal);
+	input.tangent = normalize(input.tangent);
+
+	// Sample and "unpack" the normal
+	float3 normalFromMap = NormalMap.Sample(Sampler, input.uv).rgb * 2 - 1;
+
+	// Calculate my TBN matrix to get the normal into world space
+	float3 N = input.normal;
+	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+
+	input.normal = normalize(mul(normalFromMap, TBN));
 	
 	// Calculating our First Light
 	float3 dirToLight = -(light.Direction);
-	float dirLightAmount = saturate(dot(input.normal, dirToLight));
+	float dirLightAmount = saturate(dot(input.normal, -normalize(dirToLight)));
 	float4 light1Color = ((light.DiffuseColor * dirLightAmount) + light.AmbientColor);
 
 	// Calculating our Second Light
 	float3 dirToLight2 = -(light2.Direction);
-	float dirLight2Amount = saturate(dot(input.normal, dirToLight2));
+	float dirLight2Amount = saturate(dot(input.normal, -normalize(dirToLight2)));
 	float4 light2Color = ((light2.DiffuseColor * dirLight2Amount) + light2.AmbientColor);
 
 	float4 rockColor = Rocks.Sample(Sampler, input.uv);
