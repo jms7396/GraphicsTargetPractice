@@ -3,8 +3,8 @@
 Player::Player()
 {
 	// Load in position and direction to local XMVECTORs
-	XMVECTOR posVec = XMLoadFloat4(&position);
-	XMVECTOR dirVec = XMLoadFloat4(&direction);
+	XMVECTOR posVec = XMLoadFloat3(&position);
+	XMVECTOR dirVec = XMLoadFloat3(&direction);
 	// Set initial position and direction
 	posVec = XMVectorSet(0, 0, -5, 0);
 	dirVec = XMVectorSet(0, 0, 1, 0);
@@ -17,8 +17,8 @@ Player::Player()
 		up);
 	// Store everything back in the corresponding member variables
 	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(V)); // Transpose for HLSL!
-	XMStoreFloat4(&position, posVec);
-	XMStoreFloat4(&direction, dirVec);
+	XMStoreFloat3(&position, posVec);
+	XMStoreFloat3(&direction, dirVec);
 }
 
 
@@ -28,29 +28,22 @@ Player::~Player()
 
 void Player::Update(float deltaTime)
 {
-	// Load in position and direction to local XMVECTORs
-	XMVECTOR posVec = XMLoadFloat4(&position);
-	XMVECTOR dirVec = XMLoadFloat4(&direction);
-	DirectX::XMVECTOR upVector = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	if (GetAsyncKeyState('W') & 0x8000) { MovePlayerForward(1.0f * deltaTime); }
+	if (GetAsyncKeyState('S') & 0x8000) { MovePlayerForward(-1.0f * deltaTime); }
+	if (GetAsyncKeyState('A') & 0x8000) { MovePlayerSideways(-1.0f * deltaTime); }
+	if (GetAsyncKeyState('D') & 0x8000) { MovePlayerSideways(1.0f * deltaTime); }
 
-	DirectX::XMVECTOR moveVector = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	if (GetAsyncKeyState('W') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, dirVec); }
-	if (GetAsyncKeyState('S') & 0x8000) { moveVector = DirectX::XMVectorAdd(moveVector, (-1.0f * dirVec)); };
-	if (GetAsyncKeyState('A') & 0x8000) { RotatePlayer(-0.4); };
-	if (GetAsyncKeyState('D') & 0x8000) { RotatePlayer(0.4); };
-
-
-	DirectX::XMVECTOR rotation = DirectX::XMQuaternionRotationRollPitchYaw(rotY, rotX, 0.0f);
-	dirVec = DirectX::XMVector3Rotate(dirVec, rotation);
-
-	posVec = XMVectorAdd(moveVector * deltaTime, posVec);
-
-	// Store everything back in the corresponding member variables
-	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(DirectX::XMMatrixLookToLH(posVec, dirVec, upVector)));
-	XMStoreFloat4(&position, posVec);
-	XMStoreFloat4(&direction, dirVec);
-	rotX = 0.0f;
-	rotY = 0.0f;
+	XMVECTOR rotation = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0.0f);
+	XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	XMVECTOR forwardV = XMLoadFloat3(&forward);
+	XMVECTOR directionV = XMVector3Rotate(forwardV, rotation);
+	XMVECTOR positionV = XMLoadFloat3(&position);
+	XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	XMVECTOR upV = XMLoadFloat3(&up);
+	XMMATRIX view = XMMatrixLookToLH(positionV, directionV, upV);
+	view = XMMatrixTranspose(view);
+	XMStoreFloat4x4(&viewMat, view);
+	XMStoreFloat3(&direction, directionV);
 }
 
 DirectX::XMFLOAT4X4 Player::GetViewMat()
@@ -63,29 +56,20 @@ DirectX::XMFLOAT4X4 Player::GetProjectionMat()
 	return projectionMat;
 }
 
-DirectX::XMFLOAT4 Player::GetPosition()
+DirectX::XMFLOAT3 Player::GetPosition()
 {
 	return position;
 }
 
-DirectX::XMFLOAT4 Player::GetDirection()
+DirectX::XMFLOAT3 Player::GetDirection()
 {
 	return direction;
 }
 
-DirectX::XMFLOAT3 Player::GetPosition3()
+void Player::RotatePlayer(float changeInX, float changeInY)
 {
-	return XMFLOAT3(position.x, position.y, position.z);
-}
-
-DirectX::XMFLOAT3 Player::GetDirection3()
-{
-	return XMFLOAT3(direction.x, direction.y, direction.z);
-}
-
-void Player::RotatePlayer(float changeInX)
-{
-	rotX += changeInX*0.001;
+	rotX += changeInY * 0.005f;
+	rotY += changeInX * 0.005f;
 }
 
 void Player::SetProjectionMat(float width, float height)
@@ -96,4 +80,30 @@ void Player::SetProjectionMat(float width, float height)
 		0.1f,						// Near clip plane distance
 		100.0f);					// Far clip plane distance
 	XMStoreFloat4x4(&projectionMat, XMMatrixTranspose(P)); // Transpose for HLSL!
+}
+
+void Player::MovePlayerSideways(float amount)
+{
+	XMVECTOR rotation = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0.0f);
+	XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	XMVECTOR forwardV = XMLoadFloat3(&forward);
+	XMVECTOR directionV = XMVector3Rotate(forwardV, rotation);
+	XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	XMVECTOR upV = XMLoadFloat3(&up);
+	XMVECTOR side = XMVector3Cross(directionV, upV);
+	XMVECTOR movement = side * -amount;
+	XMVECTOR positionV = XMLoadFloat3(&position);
+	XMVECTOR newPos = XMVectorAdd(positionV, movement);
+	XMStoreFloat3(&position, newPos);
+}
+
+void Player::MovePlayerForward(float amount)
+{
+	XMVECTOR rotation = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0.0f);
+	XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, amount);
+	XMVECTOR forwardV = XMLoadFloat3(&forward);
+	XMVECTOR directionV = XMVector3Rotate(forwardV, rotation);
+	XMVECTOR positionV = XMLoadFloat3(&position);
+	XMVECTOR newPos = XMVectorAdd(positionV, directionV);
+	XMStoreFloat3(&position, newPos);
 }

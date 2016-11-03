@@ -12,11 +12,11 @@ public:
 	void Update(float deltaTime);
 	DirectX::XMFLOAT4X4 GetViewMat();
 	DirectX::XMFLOAT4X4 GetProjectionMat();
-	DirectX::XMFLOAT4 GetPosition();
-	DirectX::XMFLOAT4 GetDirection();
-	DirectX::XMFLOAT3 GetPosition3();
-	DirectX::XMFLOAT3 GetDirection3();
-	void RotatePlayer(float changeInX);
+	DirectX::XMFLOAT3 GetPosition();
+	DirectX::XMFLOAT3 GetDirection();
+	void RotatePlayer(float changeInX, float changeInY);
+	void MovePlayerForward(float movement);
+	void MovePlayerSideways(float movement);
 	void SetProjectionMat(float width, float height);
 
 private:
@@ -28,8 +28,8 @@ private:
 	*/
 	//DirectX::XMVECTOR position;
 	//DirectX::XMVECTOR direction;
-	DirectX::XMFLOAT4 position;
-	DirectX::XMFLOAT4 direction;
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 direction;
 	float rotX;
 	float rotY;
 };

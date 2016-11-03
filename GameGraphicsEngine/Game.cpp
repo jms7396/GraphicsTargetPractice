@@ -13,7 +13,7 @@ using namespace DirectX;
 // hInstance - the application's OS-level handle (unique ID)
 // --------------------------------------------------------
 Game::Game(HINSTANCE hInstance)
-	: DXCore( 
+	: DXCore(
 		hInstance,		   // The application's handle
 		"DirectX Game",	   // Text for the window's title bar
 		1280,			   // Width of the window's client area
@@ -203,10 +203,10 @@ void Game::LoadShaders()
 {
 	vertexShader = new SimpleVertexShader(device, context);
 	if (!vertexShader->LoadShaderFile(L"Debug/VertexShader.cso"))
-		vertexShader->LoadShaderFile(L"VertexShader.cso");		
+		vertexShader->LoadShaderFile(L"VertexShader.cso");
 
 	pixelShader = new SimplePixelShader(device, context);
-	if(!pixelShader->LoadShaderFile(L"Debug/PixelShader.cso"))	
+	if (!pixelShader->LoadShaderFile(L"Debug/PixelShader.cso"))
 		pixelShader->LoadShaderFile(L"PixelShader.cso");
 
 	pixelShader->SetSamplerState("Sampler", sampler);
@@ -342,6 +342,7 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 	XMFLOAT3 reticlePos;
+	player->Update(deltaTime);
 	switch (currentState)
 	{
 	case Game::START:
@@ -360,26 +361,22 @@ void Game::Update(float deltaTime, float totalTime)
 			player->GetPosition().z + player->GetDirection().z);
 		reticleEntity->SetPosition(reticlePos);
 		reticleEntity->FinalizeMatrix();
-		targets[0]->CheckShot(player->GetDirection3(),player->GetPosition3());
+		if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+		{
+			for (unsigned int i = 0; i < targets.size(); i++)
+			{
+				if (targets[i]->CheckShot(player->GetDirection(), player->GetPosition()))
+				{
+					i = targets.size() + 1;
+				}
+			}
+		}
+		
 
 		for (unsigned int i = 0; i < targets.size(); i++)
 		{
 			targets[i]->Update(deltaTime);
 		}
-
-		// Since Targets are just stationary for now, we don't really need to do anything with them in Update at the moment
-
-		// Update entities only during PLAY
-		/*
-		entityOne->SetRotation(XMFLOAT3(entityOne->GetRotation().x, entityOne->GetRotation().y + 0.0001, entityOne->GetRotation().z));
-		entityOne->FinalizeMatrix();
-
-		entityTwo->SetPosition(XMFLOAT3(entityTwo->GetPosition().x, sin(totalTime), entityTwo->GetPosition().z));
-		entityTwo->FinalizeMatrix();
-
-		entityThree->SetScale(XMFLOAT3(sin(totalTime) + 1, sin(totalTime) + 1, sin(totalTime) + 1));
-		entityThree->FinalizeMatrix();
-		*/
 		break;
 	case Game::PAUSE:
 		break;
@@ -390,7 +387,7 @@ void Game::Update(float deltaTime, float totalTime)
 	}
 
 	//gameCamera->Update(deltaTime);
-	player->Update(deltaTime);
+	
 	// Quit if the escape key is pressed -- do this regardless of currentState
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
@@ -402,14 +399,14 @@ void Game::Update(float deltaTime, float totalTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
+	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of Draw (before drawing *anything*)
 	context->ClearRenderTargetView(backBufferRTV, color);
 	context->ClearDepthStencilView(
-		depthStencilView, 
+		depthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
@@ -499,7 +496,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	swapChain->Present(0, 0);
 }
 
-void Game::LoadTargets(){
+void Game::LoadTargets() {
 	for (int i = 0; i < 3; i++) {
 		targets.push_back(new Target(DirectX::XMFLOAT3(+1.1f*(i - 1), +0.0f, +0.0f), sphereMesh, mat1, mat2));
 	}
@@ -554,11 +551,14 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	// Add any custom code here...
 	if (buttonState & 0x0001)
 	{
-		// The Left mouse button is clicked
-		if (x != prevMousePos.x || y != prevMousePos.y) {
-			float deltaX = x - prevMousePos.x;
-			float deltaY = y - prevMousePos.y;
-			//gameCamera->RotateCamera(deltaX, deltaY);
+		if (currentState == GAME_STATES::PLAY)
+		{
+			player->RotatePlayer(x - prevMousePos.x, y - prevMousePos.y);
+			XMFLOAT3 reticlePos = XMFLOAT3(player->GetPosition().x + player->GetDirection().x,
+				player->GetPosition().y + player->GetDirection().y,
+				player->GetPosition().z + player->GetDirection().z);
+			reticleEntity->SetPosition(reticlePos);
+			reticleEntity->FinalizeMatrix();
 		}
 	}
 

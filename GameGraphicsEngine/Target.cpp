@@ -42,11 +42,9 @@ void Target::Update(float deltaTime)
 		mainTarget->Move(DirectX::XMFLOAT3(0.0f, targetVelocity * deltaTime, 0.0f));
 		if (mainTarget->GetPosition().y <= ((targetScale * 0.5f) + floor))
 		{
-			printf("bounce");
 			targetVelocity =  -0.85f * targetVelocity;
 			if (abs(targetVelocity) < 0.01f)
 			{
-				printf("stop");
 				fall = false;
 			}
 		}
@@ -101,12 +99,13 @@ bool Target::CheckShot(DirectX::XMFLOAT3 playerDirection, DirectX::XMFLOAT3 play
 		DirectX::XMVECTOR pointOnLine = playerLoc + direction;
 		DirectX::XMVECTOR distance = pointOnLine - sphereLoc;
 		DirectX::XMVector3Length(distance);
-		DirectX::XMFLOAT3 dist;
-		DirectX::XMStoreFloat3(&dist, distance);
+		float dist;
+		DirectX::XMStoreFloat(&dist, distance);
 
 		//Check to see if it is shorter than the radius of the sphere
-		if (abs(dist.x) < chainScale * 0.5f)
+		if (abs(dist) < chainScale * 0.5f)
 		{
+			printf("%f", dist);
 			active = false;
 			fall = true;
 			targetChain.erase(targetChain.begin() + i, targetChain.begin() + chainCount);
@@ -138,15 +137,15 @@ bool Target::CheckShot(DirectX::XMFLOAT3 playerDirection, DirectX::XMFLOAT3 play
 	DirectX::XMVECTOR pointOnLine = playerLoc + direction;
 	DirectX::XMVECTOR distance = pointOnLine - sphereLoc;
 	DirectX::XMVector3Length(distance);
-	DirectX::XMFLOAT3 dist;
-	DirectX::XMStoreFloat3(&dist, distance);
+	float dist;
+	DirectX::XMStoreFloat(&dist, distance);
 
 	//Check to see if it is shorter than the radius of the sphere
-	if (abs(dist.y) < targetScale * 0.5f)
+	if (abs(dist) < targetScale * 0.5f)
 	{
 		drawTarget = false;
 		active = false;
-		printf(" %f %f %f", dist.x, dist.y, dist.z);
+		printf(" %f", dist);
 		return true;
 	}
 
