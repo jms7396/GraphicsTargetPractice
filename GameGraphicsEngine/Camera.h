@@ -14,6 +14,7 @@ public:
 	void RotateCamera(float changeInX, float changeInY);
 	void Update(float deltaTime);
 	void SetProjectionMat(float width, float height);
+	void SetActive(bool set);
 
 private:
 	DirectX::XMFLOAT4X4 viewMat;
@@ -28,5 +29,6 @@ private:
 	DirectX::XMFLOAT4 direction;
 	float rotX;
 	float rotY;
+	bool active = true;
 };
 

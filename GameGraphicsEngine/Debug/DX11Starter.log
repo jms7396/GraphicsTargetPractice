@@ -1,8 +1,11 @@
 ﻿  Game.cpp
 e:\yan\graphics\gamegraphicsengine\game.cpp(156): warning C4305: 'argument': truncation from 'double' to 'float'
 e:\yan\graphics\gamegraphicsengine\game.cpp(180): warning C4305: 'argument': truncation from 'double' to 'float'
-e:\yan\graphics\gamegraphicsengine\game.cpp(277): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+e:\yan\graphics\gamegraphicsengine\game.cpp(274): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+e:\yan\graphics\gamegraphicsengine\game.cpp(278): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
 e:\yan\graphics\gamegraphicsengine\game.cpp(322): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-e:\yan\graphics\gamegraphicsengine\game.cpp(579): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+e:\yan\graphics\gamegraphicsengine\game.cpp(323): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+e:\yan\graphics\gamegraphicsengine\game.cpp(613): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
+e:\yan\graphics\gamegraphicsengine\game.cpp(617): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
   DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.exe
   DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)

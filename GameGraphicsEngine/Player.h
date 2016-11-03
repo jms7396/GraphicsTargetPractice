@@ -18,6 +18,8 @@ public:
 	void MovePlayerForward(float movement);
 	void MovePlayerSideways(float movement);
 	void SetProjectionMat(float width, float height);
+	void SetActive(bool set);
+
 
 private:
 	DirectX::XMFLOAT4X4 viewMat;
@@ -32,5 +34,6 @@ private:
 	DirectX::XMFLOAT3 direction;
 	float rotX;
 	float rotY;
+	bool active = true;
 };
 

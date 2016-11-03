@@ -84,13 +84,10 @@ private:
 	Mesh* reticleMesh; // Simple diamond-shaped mesh to serve as aiming reticle
 
 	// Entity variables
-	Entity* entityOne;
-	Entity* entityTwo;
-	Entity* entityThree;
 	Entity* reticleEntity;
 
 	// Camera variable
-	Camera* gameCamera;
+	Camera* debugCamera;
 
 	// Material variables
 	Material* mat1;
@@ -124,5 +121,6 @@ private:
 
 	bool needNewTarget = false;
 	bool spacePressed = false;
+	bool debug = false;
 };
 

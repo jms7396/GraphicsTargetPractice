@@ -69,7 +69,7 @@ Game::~Game()
 	if (reticleEntity) { delete (reticleEntity); }
 
 	// Delete the Camera
-	//if (gameCamera) { delete (gameCamera); }
+	if (debugCamera) { delete (debugCamera); }
 
 	// Delete Player
 	if (player) { delete (player); }
@@ -270,8 +270,9 @@ void Game::CreateMatrices()
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W)); // Transpose for HLSL!
 
 	// Set up the Game Camera with the View Matrix and Projection Matrix
-	//gameCamera = new Camera();
-	//gameCamera->SetProjectionMat(width, height);
+	debugCamera = new Camera();
+	debugCamera->SetProjectionMat(width, height);
+	debugCamera->SetActive(false);
 
 	player = new Player();
 	player->SetProjectionMat(width, height);
@@ -318,7 +319,7 @@ void Game::OnResize()
 	DXCore::OnResize();
 
 	// Update our projection matrix since the window size changed
-	//gameCamera->SetProjectionMat(width, height);
+	debugCamera->SetProjectionMat(width, height);
 	player->SetProjectionMat(width, height);
 }
 
@@ -329,6 +330,20 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	XMFLOAT3 reticlePos;
 	player->Update(deltaTime);
+	debugCamera->Update(deltaTime);
+	if (GetAsyncKeyState('B'))
+	{
+		player->SetActive(false);
+		debugCamera->SetActive(true);
+		debug = true;
+	}
+	else if (GetAsyncKeyState('G'))
+	{
+		player->SetActive(true);
+		debugCamera->SetActive(false);
+		debug = false;
+	}
+
 	switch (currentState)
 	{
 	case Game::START:
@@ -398,8 +413,6 @@ void Game::Update(float deltaTime, float totalTime)
 				LoadTargets();
 			}
 		}
-
-
 		break;
 	case Game::PAUSE:
 		break;
@@ -409,7 +422,6 @@ void Game::Update(float deltaTime, float totalTime)
 		break;
 	}
 
-	//gameCamera->Update(deltaTime);
 	
 	// Quit if the escape key is pressed -- do this regardless of currentState
 	if (GetAsyncKeyState(VK_ESCAPE))
@@ -476,20 +488,40 @@ void Game::Draw(float deltaTime, float totalTime)
 				context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 				// Prepare the shader for the material being used
-				targetEntitys[j]->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
-				context->DrawIndexed(
-					targetEntitys[j]->GetMesh()->GetIndexCount(),	//The Number of indices to use (gotten from mesh data)
-					0,												// Offset to the first index to look at
-					0);												// Offset to add to each index when looking at vertices
+				if (debug)
+				{
+					targetEntitys[j]->PrepareMaterial(debugCamera->GetViewMat(), debugCamera->GetProjectionMat());
+					context->DrawIndexed(
+						targetEntitys[j]->GetMesh()->GetIndexCount(),	//The Number of indices to use (gotten from mesh data)
+						0,												// Offset to the first index to look at
+						0);												// Offset to add to each index when looking at vertices
+				}
+				else
+				{
+					targetEntitys[j]->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
+					context->DrawIndexed(
+						targetEntitys[j]->GetMesh()->GetIndexCount(),	//The Number of indices to use (gotten from mesh data)
+						0,												// Offset to the first index to look at
+						0);												// Offset to add to each index when looking at vertices
+				}
+				
 			}
 		}
 		skyVB = cubeMesh->GetVertexBuffer();
 		skyIB = cubeMesh->GetIndexBuffer();
 		context->IAGetVertexBuffers(0, 1, &skyVB, &stride, &offset);
 		context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
-
-		skyVertexShader->SetMatrix4x4("view", player->GetViewMat());
-		skyVertexShader->SetMatrix4x4("projection", player->GetProjectionMat());
+		if (debug)
+		{
+			skyVertexShader->SetMatrix4x4("view", debugCamera->GetViewMat());
+			skyVertexShader->SetMatrix4x4("projection", debugCamera->GetProjectionMat());
+		}
+		else
+		{
+			skyVertexShader->SetMatrix4x4("view", player->GetViewMat());
+			skyVertexShader->SetMatrix4x4("projection", player->GetProjectionMat());
+		}
+		
 		skyVertexShader->CopyAllBufferData();
 		skyVertexShader->SetShader();
 
@@ -576,12 +608,19 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	{
 		if (currentState == GAME_STATES::PLAY)
 		{
-			player->RotatePlayer(x - prevMousePos.x, y - prevMousePos.y);
-			XMFLOAT3 reticlePos = XMFLOAT3(player->GetPosition().x + player->GetDirection().x,
-				player->GetPosition().y + player->GetDirection().y,
-				player->GetPosition().z + player->GetDirection().z);
-			reticleEntity->SetPosition(reticlePos);
-			reticleEntity->FinalizeMatrix();
+			if (debug)
+			{
+				debugCamera->RotateCamera(x - prevMousePos.x, y - prevMousePos.y);
+			}
+			else
+			{
+				player->RotatePlayer(x - prevMousePos.x, y - prevMousePos.y);
+				XMFLOAT3 reticlePos = XMFLOAT3(player->GetPosition().x + player->GetDirection().x,
+					player->GetPosition().y + player->GetDirection().y,
+					player->GetPosition().z + player->GetDirection().z);
+				reticleEntity->SetPosition(reticlePos);
+				reticleEntity->FinalizeMatrix();
+			}
 		}
 	}
 

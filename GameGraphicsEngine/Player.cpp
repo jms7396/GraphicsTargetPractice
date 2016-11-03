@@ -28,22 +28,25 @@ Player::~Player()
 
 void Player::Update(float deltaTime)
 {
-	if (GetAsyncKeyState('W') & 0x8000) { MovePlayerForward(1.0f * deltaTime); }
-	if (GetAsyncKeyState('S') & 0x8000) { MovePlayerForward(-1.0f * deltaTime); }
-	if (GetAsyncKeyState('A') & 0x8000) { MovePlayerSideways(-1.0f * deltaTime); }
-	if (GetAsyncKeyState('D') & 0x8000) { MovePlayerSideways(1.0f * deltaTime); }
+	if (active)
+	{
+		if (GetAsyncKeyState('W') & 0x8000) { MovePlayerForward(1.0f * deltaTime); }
+		if (GetAsyncKeyState('S') & 0x8000) { MovePlayerForward(-1.0f * deltaTime); }
+		if (GetAsyncKeyState('A') & 0x8000) { MovePlayerSideways(-1.0f * deltaTime); }
+		if (GetAsyncKeyState('D') & 0x8000) { MovePlayerSideways(1.0f * deltaTime); }
 
-	XMVECTOR rotation = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0.0f);
-	XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	XMVECTOR forwardV = XMLoadFloat3(&forward);
-	XMVECTOR directionV = XMVector3Rotate(forwardV, rotation);
-	XMVECTOR positionV = XMLoadFloat3(&position);
-	XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	XMVECTOR upV = XMLoadFloat3(&up);
-	XMMATRIX view = XMMatrixLookToLH(positionV, directionV, upV);
-	view = XMMatrixTranspose(view);
-	XMStoreFloat4x4(&viewMat, view);
-	XMStoreFloat3(&direction, directionV);
+		XMVECTOR rotation = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0.0f);
+		XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		XMVECTOR forwardV = XMLoadFloat3(&forward);
+		XMVECTOR directionV = XMVector3Rotate(forwardV, rotation);
+		XMVECTOR positionV = XMLoadFloat3(&position);
+		XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		XMVECTOR upV = XMLoadFloat3(&up);
+		XMMATRIX view = XMMatrixLookToLH(positionV, directionV, upV);
+		view = XMMatrixTranspose(view);
+		XMStoreFloat4x4(&viewMat, view);
+		XMStoreFloat3(&direction, directionV);
+	}
 }
 
 DirectX::XMFLOAT4X4 Player::GetViewMat()
@@ -106,4 +109,9 @@ void Player::MovePlayerForward(float amount)
 	XMVECTOR positionV = XMLoadFloat3(&position);
 	XMVECTOR newPos = XMVectorAdd(positionV, directionV);
 	XMStoreFloat3(&position, newPos);
+}
+
+void Player::SetActive(bool set)
+{
+	active = set;
 }
