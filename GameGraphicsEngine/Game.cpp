@@ -521,7 +521,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 void Game::LoadTargets() {
 	for (int i = 0; i < 3; i++) {
-		targets.push_back(new Target(DirectX::XMFLOAT3(+1.1f*(i - 1), +0.0f, +0.0f), sphereMesh, mat1, mat2));
+		targets.push_back(new Target(DirectX::XMFLOAT3(+1.1f*(i - 1), +1.0f, +0.0f), sphereMesh, mat1, mat2));
 	}
 	for (unsigned int i = 0; i < targets.size(); i++) {
 		vector<Entity*> targetEntitys = targets[i]->GetTarget();

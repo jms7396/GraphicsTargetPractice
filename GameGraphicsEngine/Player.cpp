@@ -99,7 +99,7 @@ void Player::MovePlayerSideways(float amount)
 
 void Player::MovePlayerForward(float amount)
 {
-	XMVECTOR rotation = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0.0f);
+	XMVECTOR rotation = XMQuaternionRotationRollPitchYaw(0.0f, rotY, 0.0f);
 	XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, amount);
 	XMVECTOR forwardV = XMLoadFloat3(&forward);
 	XMVECTOR directionV = XMVector3Rotate(forwardV, rotation);
