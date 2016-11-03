@@ -121,5 +121,8 @@ private:
 
 	// Target Array
 	vector<Target*> targets;
+
+	bool needNewTarget = false;
+	bool spacePressed = false;
 };
 

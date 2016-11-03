@@ -43,7 +43,7 @@ void Target::Update(float deltaTime)
 		if (mainTarget->GetPosition().y <= ((targetScale * 0.5f) + floor))
 		{
 			targetVelocity =  -0.85f * targetVelocity;
-			if (abs(targetVelocity) < 0.01f)
+			if (abs(targetVelocity) < 0.005f)
 			{
 				fall = false;
 			}
@@ -98,7 +98,7 @@ bool Target::CheckShot(DirectX::XMFLOAT3 playerDirection, DirectX::XMFLOAT3 play
 		direction = direction * dotProduct;
 		DirectX::XMVECTOR pointOnLine = playerLoc + direction;
 		DirectX::XMVECTOR distance = pointOnLine - sphereLoc;
-		DirectX::XMVector3Length(distance);
+		distance = DirectX::XMVector3Length(distance);
 		float dist;
 		DirectX::XMStoreFloat(&dist, distance);
 
@@ -136,7 +136,7 @@ bool Target::CheckShot(DirectX::XMFLOAT3 playerDirection, DirectX::XMFLOAT3 play
 	direction = direction * dotProduct;
 	DirectX::XMVECTOR pointOnLine = playerLoc + direction;
 	DirectX::XMVECTOR distance = pointOnLine - sphereLoc;
-	DirectX::XMVector3Length(distance);
+	distance = DirectX::XMVector3Length(distance);
 	float dist;
 	DirectX::XMStoreFloat(&dist, distance);
 
@@ -150,4 +150,14 @@ bool Target::CheckShot(DirectX::XMFLOAT3 playerDirection, DirectX::XMFLOAT3 play
 	}
 
 	return collision;
+}
+
+bool Target::GetActive()
+{
+	return active;
+}
+
+bool Target::GetFall()
+{
+	return fall;
 }

@@ -305,20 +305,6 @@ void Game::CreateBasicGeometry()
 	reticleEntity = new Entity(reticleMesh, reticleMat);
 
 	LoadTargets();
-
-	/*
-	// Creating Entities using Meshes
-	entityOne = new Entity(sphereMesh, mat2);
-	entityTwo = new Entity(cubeMesh, mat1);
-	entityThree = new Entity(helixMesh, mat1);
-
-	entityOne->SetPosition(DirectX::XMFLOAT3(+1.5f, +0.0f, +0.0f));
-	entityOne->SetScale(DirectX::XMFLOAT3(+1.0f, +1.0f, +1.0f));
-	entityTwo->SetPosition(DirectX::XMFLOAT3(-1.5f, +0.0f, +0.0f));
-	entityTwo->SetScale(DirectX::XMFLOAT3(+1.5f, +1.5f, +1.0f));
-	entityThree->SetPosition(DirectX::XMFLOAT3(+0.0f, -1.5f, +0.0f));
-	entityThree->SetRotation(DirectX::XMFLOAT3(+0.0f, +0.0f, +1.0f));
-	*/
 }
 
 
@@ -363,20 +349,57 @@ void Game::Update(float deltaTime, float totalTime)
 		reticleEntity->FinalizeMatrix();
 		if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 		{
-			for (unsigned int i = 0; i < targets.size(); i++)
-			{
-				if (targets[i]->CheckShot(player->GetDirection(), player->GetPosition()))
-				{
-					i = targets.size() + 1;
-				}
-			}
+			spacePressed = true;
 		}
-		
-
+		else
+		{
+			if (spacePressed)
+			{
+				for (unsigned int i = 0; i < targets.size(); i++)
+				{
+					if (targets[i]->CheckShot(player->GetDirection(), player->GetPosition()))
+					{
+						i = targets.size() + 1;
+					}
+				}
+				bool newTargets = true;
+				for (unsigned int i = 0; i < targets.size(); i++)
+				{
+					if (targets[i]->GetActive())
+					{
+						newTargets = false;
+					}
+				}
+				if (newTargets) needNewTarget = true;
+			}
+			spacePressed = false;
+		}
 		for (unsigned int i = 0; i < targets.size(); i++)
 		{
 			targets[i]->Update(deltaTime);
 		}
+		if (needNewTarget)
+		{
+			bool newTargets = true;
+			for (unsigned int i = 0; i < targets.size(); i++)
+			{
+				if (targets[i]->GetActive()  || targets[i]->GetFall())
+				{
+					newTargets = false;
+				}
+			}
+			if (newTargets)
+			{
+				for (unsigned int i = 0; i < targets.size(); i++)
+				{
+					delete targets[i];
+				}
+				targets.clear();
+				LoadTargets();
+			}
+		}
+
+
 		break;
 	case Game::PAUSE:
 		break;

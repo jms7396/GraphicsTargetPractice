@@ -12,6 +12,8 @@ public:
 	bool CheckShot(DirectX::XMFLOAT3 playerDirection, DirectX::XMFLOAT3 playerPos);
 	vector<Entity*> GetTarget();
 	void Update(float deltTime);
+	bool GetActive();
+	bool GetFall();
 
 private:
 	Entity* mainTarget;
