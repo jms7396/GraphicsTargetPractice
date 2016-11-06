@@ -67,6 +67,7 @@ Game::~Game()
 	//if (entityTwo){ delete(entityTwo); }
 	//if (entityThree) { delete(entityThree); }
 	if (reticleEntity) { delete (reticleEntity); }
+	if (floorEntity) { delete (floorEntity); }
 
 	// Delete the Camera
 	if (debugCamera) { delete (debugCamera); }
@@ -149,16 +150,16 @@ void Game::Init()
 
 
 	// Set Up Light		** We may be able to leave this out of Init(), and only set up the lights (and LoadShaders) in InitForPlay()
-	dirLight.AmbietColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-	dirLight.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
-	dirLight.Direction = XMFLOAT3(0, -1, 0);
+	//dirLight.AmbietColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	//dirLight.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
+	//dirLight.Direction = XMFLOAT3(0, -1, 0);
 
-	dirLight2.AmbietColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0f);
-	dirLight2.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
-	dirLight2.Direction = XMFLOAT3(0, 0, 1);
+	//dirLight2.AmbietColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0f);
+	//dirLight2.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
+	//dirLight2.Direction = XMFLOAT3(0, 0, 1);
 
-	pixelShader->SetData("light", &dirLight, sizeof(DirectionalLight));
-	pixelShader->SetData("light2", &dirLight2, sizeof(DirectionalLight));
+	//pixelShader->SetData("light", &dirLight, sizeof(DirectionalLight));
+	//pixelShader->SetData("light2", &dirLight2, sizeof(DirectionalLight));
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -172,12 +173,12 @@ void Game::InitForPlay() {
 	LoadShaders();
 	CreateBasicGeometry();
 
-	// Also need to reset the lighting, since leaving it out here causes the geometry to not show up
-	dirLight.AmbietColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	// Initialize the lighting
+	dirLight.AmbietColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 	dirLight.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
 	dirLight.Direction = XMFLOAT3(0, -1, 0);
 
-	dirLight2.AmbietColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0f);
+	dirLight2.AmbietColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	dirLight2.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
 	dirLight2.Direction = XMFLOAT3(0, 0, 1);
 
@@ -289,14 +290,14 @@ void Game::CreateBasicGeometry()
 	helixMesh = new Mesh("Debug/Assets/Models/helix.obj", device);
 	cubeMesh = new Mesh("Debug/Assets/Models/cube.obj", device);
 
-	// Create geometry for aiming reticle.  It's just 2 tris, so we should be fine to just do it here on the stack
+	// Create geometry for aiming reticle.  It's just 2 tris, so we should be fine to just do it here
 	// This can probably be optimized even further, though (see particle system/ geometry shader slides)
 	Vertex aimingVerts[] =
 	{
 		{ XMFLOAT3(+0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT3() },
-		{ XMFLOAT3(+0.0f, +0.01f, +0.0f), XMFLOAT3(), XMFLOAT3() },
+		{ XMFLOAT3(+0.0f, +0.02f, +0.0f), XMFLOAT3(), XMFLOAT3() },
 		{ XMFLOAT3(-0.01f, +0.0f, +0.0f), XMFLOAT3(), XMFLOAT3() },
-		{ XMFLOAT3(+0.0f, -0.01f, +0.0f), XMFLOAT3(), XMFLOAT3() },
+		{ XMFLOAT3(+0.0f, -0.02f, +0.0f), XMFLOAT3(), XMFLOAT3() },
 	};
 
 	UINT aimingIndices[] = { 2, 1, 0, 0, 3, 2 };
@@ -304,6 +305,12 @@ void Game::CreateBasicGeometry()
 	// Load reticle mesh and entity
 	reticleMesh = new Mesh(aimingVerts, 4, aimingIndices, 6, device);
 	reticleEntity = new Entity(reticleMesh, reticleMat);
+
+	// Load floor entity
+	floorEntity = new Entity(cubeMesh, mat2); // Can probably optimize to make floor 2 tris instead of a complete cube
+	floorEntity->SetScale(DirectX::XMFLOAT3(20.0f, 1.0f, 20.0f));
+	floorEntity->SetPosition(DirectX::XMFLOAT3(0.0f, -3.5f, 0.0f));
+	floorEntity->FinalizeMatrix();
 
 	LoadTargets();
 }
@@ -476,6 +483,22 @@ void Game::Draw(float deltaTime, float totalTime)
 		reticleEntity->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
 
 		context->DrawIndexed(reticleMesh->GetIndexCount(), 0, 0);
+
+		// Draw floor
+		vertexBuffer = floorEntity->GetMesh()->GetVertexBuffer();
+		indexBuffer = floorEntity->GetMesh()->GetIndexBuffer();
+		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		if (debug)
+		{
+			floorEntity->PrepareMaterial(debugCamera->GetViewMat(), debugCamera->GetProjectionMat());
+		}
+		else
+		{
+			floorEntity->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
+		}
+		context->DrawIndexed(floorEntity->GetMesh()->GetIndexCount(), 0, 0);
 
 		// Draw targets.  The proper shaders are already being set during this process
 		for (unsigned int i = 0; i < targets.size(); i++) {

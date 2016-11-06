@@ -85,6 +85,7 @@ private:
 
 	// Entity variables
 	Entity* reticleEntity;
+	Entity* floorEntity;
 
 	// Camera variable
 	Camera* debugCamera;
