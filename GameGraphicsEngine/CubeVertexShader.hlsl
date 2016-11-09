@@ -10,16 +10,14 @@ cbuffer externalData : register(b0)
 struct VertexShaderInput
 { 
 	float3 position		: POSITION;
-	float2 uv			: TEXCOORD;
-	float3 normal		: NORMAL;
-	float3 tangent		: TANGENT;
+	float3 uvw			: TEXCOORD;
 };
 
 // Struct representing the data we're sending down the pipeline
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
-	float2 uvw			: TEXCOORD;
+	float3 uvw			: TEXCOORD;
 };
 
 // --------------------------------------------------------

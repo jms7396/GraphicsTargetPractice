@@ -532,7 +532,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		}
 		skyVB = cubeMesh->GetVertexBuffer();
 		skyIB = cubeMesh->GetIndexBuffer();
-		context->IAGetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+		context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
 		context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
 		if (debug)
 		{

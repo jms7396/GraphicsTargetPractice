@@ -3,11 +3,11 @@
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
-	float2 uvw			: TEXCOORD;
+	float3 uvw			: TEXCOORD;
 };
 
 // Texture Related Data
-Texture2D Sky			: register(t0);
+TextureCube Sky			: register(t0);
 SamplerState Sampler	: register(s0);
 
 // --------------------------------------------------------

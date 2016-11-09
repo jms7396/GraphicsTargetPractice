@@ -1,11 +1,5 @@
-﻿  Game.cpp
-e:\yan\graphics\gamegraphicsengine\game.cpp(156): warning C4305: 'argument': truncation from 'double' to 'float'
-e:\yan\graphics\gamegraphicsengine\game.cpp(180): warning C4305: 'argument': truncation from 'double' to 'float'
-e:\yan\graphics\gamegraphicsengine\game.cpp(274): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-e:\yan\graphics\gamegraphicsengine\game.cpp(278): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-e:\yan\graphics\gamegraphicsengine\game.cpp(322): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-e:\yan\graphics\gamegraphicsengine\game.cpp(323): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-e:\yan\graphics\gamegraphicsengine\game.cpp(613): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-e:\yan\graphics\gamegraphicsengine\game.cpp(617): warning C4244: 'argument': conversion from 'LONG' to 'float', possible loss of data
-  DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.exe
-  DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)
+﻿C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\VertexShader.hlsl(60,18-45): warning X3578: Output value 'main' is not completely initialized
+  
+  compilation object save succeeded; see C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\VertexShader.cso
+  DX11Starter.vcxproj -> C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.exe
+  DX11Starter.vcxproj -> C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)

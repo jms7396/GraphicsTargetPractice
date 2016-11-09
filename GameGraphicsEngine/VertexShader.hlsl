@@ -61,6 +61,7 @@ VertexToPixel main( VertexShaderInput input )
 {
 	// Set up output struct
 	VertexToPixel output;
+	
 
 	// The vertex's position (input.position) must be converted to world space,
 	// then camera space (relative to our 3D camera), then to proper homogenous 
@@ -81,7 +82,7 @@ VertexToPixel main( VertexShaderInput input )
 	// Pass the input normal to the output normal
 	// Multiply the input normal by the world matrix to cast
 	output.normal = mul(input.normal, (float3x3)world); // Uniform Scale
-	output.normal = mul(input.tangent, (float3x3)world); // Needed for normal mapping
+	output.tangent = mul(input.tangent, (float3x3)world); // Needed for normal mapping
 
 	// Pass through the UVs
 	output.uv = input.uv;
