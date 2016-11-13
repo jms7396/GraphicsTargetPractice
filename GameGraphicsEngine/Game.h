@@ -68,10 +68,15 @@ private:
 	SimpleVertexShader* skyVertexShader;
 	SimplePixelShader* skyPixelShader;
 
+	// Shader for Shadows
+	SimpleVertexShader* shadowVS;
+
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT4X4 viewMatrix;
 	DirectX::XMFLOAT4X4 projectionMatrix;
+	DirectX::XMFLOAT4X4 shadowViewMatrix;
+	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -104,11 +109,15 @@ private:
 	ID3D11ShaderResourceView* woodSRV;
 	ID3D11ShaderResourceView* normalMapBarkSRV;
 	ID3D11ShaderResourceView* skySRV;
+	ID3D11ShaderResourceView* shadowSRV;
 	ID3D11SamplerState* sampler;
+	ID3D11SamplerState* shadowSampler;
+	ID3D11DepthStencilView* shadowDSV;
 
 	// Render States
 	ID3D11RasterizerState* skyRastState;
 	ID3D11DepthStencilState* skyDepthState;
+	ID3D11RasterizerState* shadowRasterizer;
 
 	// Spritefont members (for text)
 	SpriteBatch* spriteBatch;
@@ -120,6 +129,8 @@ private:
 	// Target Array
 	vector<Target*> targets;
 
+	// Misc. variables
+	int shadowMapSize;
 	bool needNewTarget = false;
 	bool spacePressed = false;
 	bool debug = false;
