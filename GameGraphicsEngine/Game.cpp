@@ -25,6 +25,9 @@ Game::Game(HINSTANCE hInstance)
 	pixelShader = 0;
 	aimingVertexShader = 0;
 	aimingPixelShader = 0;
+	skyVertexShader = 0;
+	skyPixelShader = 0;
+	shadowVS = 0;
 
 	reticleMesh = 0;
 	reticleEntity = 0;
@@ -56,6 +59,7 @@ Game::~Game()
 	delete aimingPixelShader;
 	delete skyVertexShader;
 	delete skyPixelShader;
+	delete shadowVS;
 
 	// Delete the Mesh's to clear memory
 	if (sphereMesh) { delete(sphereMesh); }
@@ -93,11 +97,14 @@ Game::~Game()
 
 	// Release textures and sampler
 	sampler->Release();
+	shadowSampler->Release();
 	rockSRV->Release();
 	woodSRV->Release();
 	//normalMapBarkSRV->Release();
 	skySRV->Release();
-
+	shadowSRV->Release();
+	shadowDSV->Release();
+	shadowRasterizer->Release();
 
 }
 
