@@ -176,6 +176,8 @@ void Game::Init()
 
 // Initializes game for transition from Start to Play state
 void Game::InitForPlay() {
+	shadowMapSize = 1024;
+
 	ResetRenderStates();
 	LoadShaders();
 	CreateBasicGeometry();
@@ -191,6 +193,64 @@ void Game::InitForPlay() {
 
 	pixelShader->SetData("light", &dirLight, sizeof(DirectionalLight));
 	pixelShader->SetData("light2", &dirLight2, sizeof(DirectionalLight));
+
+	// ***** Shadow stuff *****
+	// Texture to hold the shadow map
+	D3D11_TEXTURE2D_DESC shadowDesc = {};
+	shadowDesc.Width = shadowMapSize;
+	shadowDesc.Height = shadowMapSize;
+	shadowDesc.ArraySize = 1;
+	shadowDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowDesc.CPUAccessFlags = 0;
+	shadowDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowDesc.MipLevels = 1;
+	shadowDesc.MiscFlags = 0;
+	shadowDesc.SampleDesc.Count = 1;
+	shadowDesc.SampleDesc.Quality= 0;
+	shadowDesc.Usage = D3D11_USAGE_DEFAULT;
+	ID3D11Texture2D* shadowTexture;
+	device->CreateTexture2D(&shadowDesc, 0, &shadowTexture);
+
+	// Depth stencil view
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadDSDesc = {};
+	shadDSDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	shadDSDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadDSDesc.Texture2D.MipSlice = 0;
+	device->CreateDepthStencilView(shadowTexture, &shadDSDesc, &shadowDSV);
+
+	// Create shadow map's SRV
+	D3D11_SHADER_RESOURCE_VIEW_DESC shadSRVDesc = {};
+	shadSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	shadSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shadSRVDesc.Texture2D.MipLevels = 1;
+	shadSRVDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(shadowTexture, &shadSRVDesc, &shadowSRV);
+	// shadowTexture was only needed to create SRV, so release it here
+	shadowTexture->Release();
+
+	// Create special ('comparison') sampler state for shadows
+	D3D11_SAMPLER_DESC shadowSampleDesc = {};
+	shadowSampleDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	shadowSampleDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampleDesc.BorderColor[0] = 1.0f;
+	shadowSampleDesc.BorderColor[1] = 1.0f;
+	shadowSampleDesc.BorderColor[2] = 1.0f;
+	shadowSampleDesc.BorderColor[3] = 1.0f;
+	device->CreateSamplerState(&shadowSampleDesc, &shadowSampler);
+
+	// Create rasterizer state
+	D3D11_RASTERIZER_DESC shadowRastDesc = {};
+	shadowRastDesc.FillMode = D3D11_FILL_SOLID;
+	shadowRastDesc.CullMode = D3D11_CULL_BACK;
+	shadowRastDesc.DepthClipEnable = true;
+	shadowRastDesc.DepthBias = 1000;
+	shadowRastDesc.DepthBiasClamp = 0.0f;
+	shadowRastDesc.SlopeScaledDepthBias = 1.0f;
+	device->CreateRasterizerState(&shadowRastDesc, &shadowRasterizer);
+	// ***** End shadow stuff *****
 }
 
 // Resets various render states to their default values
@@ -238,6 +298,10 @@ void Game::LoadShaders()
 	if (!skyPixelShader->LoadShaderFile(L"Debug/CubePixelShader.cso"))
 		skyPixelShader->LoadShaderFile(L"CubePixelShader.cso");
 
+	shadowVS = new SimpleVertexShader(device, context);
+	if (!shadowVS->LoadShaderFile(L"Debug/ShadowVertexShader.cso"))
+		shadowVS->LoadShaderFile(L"ShadowVertexShader.cso");
+
 	// Load our shaders into our materials
 	mat1 = new Material(pixelShader, vertexShader, rockSRV, sampler);
 	mat2 = new Material(pixelShader, vertexShader, woodSRV, sampler);
@@ -284,6 +348,14 @@ void Game::CreateMatrices()
 
 	player = new Player();
 	player->SetProjectionMat(width, height);
+
+	// Set up shadow matricies
+	XMMATRIX shadView = XMMatrixLookAtLH(	XMVectorSet(0, 20, -20, 0),
+											XMVectorSet(0, 0, 0, 0),
+											XMVectorSet(0, 1, 0, 0));
+	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shadView));
+	XMMATRIX shadProj = XMMatrixOrthographicLH(10, 10, 0.1f, 100.0f);
+	XMStoreFloat4x4(&shadowProjectionMatrix, XMMatrixTranspose(shadProj));
 }
 
 

@@ -18,7 +18,7 @@ struct VertexToPixel
 	float4 position	: SV_POSITION;
 };
 
-float4 main( VertexShaderInput input )
+VertexToPixel main( VertexShaderInput input )
 {
 	VertexToPixel output;
 

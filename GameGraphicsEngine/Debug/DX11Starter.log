@@ -1,5 +1,2 @@
-﻿C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\VertexShader.hlsl(60,18-45): warning X3578: Output value 'main' is not completely initialized
-  
-  compilation object save succeeded; see C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\VertexShader.cso
-  DX11Starter.vcxproj -> C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.exe
-  DX11Starter.vcxproj -> C:\Users\James\Documents\GitHub\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)
+﻿  DX11Starter.vcxproj -> D:\Ben\GGP Assignments\Group Project\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.exe
+  DX11Starter.vcxproj -> D:\Ben\GGP Assignments\Group Project\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)
