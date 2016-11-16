@@ -16,6 +16,7 @@ struct VertexToPixel
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
 	float2 uv			: TEXCOORD;
+	float4 shadowPos	: TEXCOORD1;
 };
 
 struct DirectionalLight {
@@ -34,7 +35,9 @@ cbuffer dirLight : register(b0)
 Texture2D Rocks			: register(t0);
 Texture2D Wood			: register(t1);
 Texture2D NormalMap		: register(t2);
+Texture2D ShadowMap		: register(t3);
 SamplerState Sampler	: register(s0);
+SamplerComparisonState ShadowSampler : register(s1);
 
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
@@ -75,10 +78,19 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 rockColor = Rocks.Sample(Sampler, input.uv);
 	float4 woodColor = Wood.Sample(Sampler, input.uv);
 
+	// Calculating the Shadow Map
+	// Get this pixel's UV on shadow map
+	float2 shadowUV = input.shadowPos.xy / input.shadowPos.w * 0.5 + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y; // Flip Y to account for difference between screen & UV coords
+
+	// Determine this pixel's depth from light
+	float depthFromLight = input.shadowPos.z / input.shadowPos.w;
+	// Sample the shadow map
+	float shadowAmt = ShadowMap.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
 
 	float4 finalColor = (light1Color*woodColor) + (light2Color*woodColor);
 
-	return finalColor;
+	return finalColor * shadowAmt;
 
 
 	// Just return the input color

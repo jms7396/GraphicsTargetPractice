@@ -553,11 +553,20 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		break;
 	case Game::PLAY:
+		// Draw shadows first
+		RenderShadowMap();
+
 		// Draw aiming reticle
 		vertexBuffer = reticleMesh->GetVertexBuffer();
 		indexBuffer = reticleMesh->GetIndexBuffer();
 		context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		vertexShader->SetMatrix4x4("shadowView", shadowViewMatrix);
+		vertexShader->SetMatrix4x4("shadowProjection", shadowProjectionMatrix);
+
+		pixelShader->SetShaderResourceView("ShadowMap", shadowSRV);
+		pixelShader->SetSamplerState("ShadowSampler", shadowSampler);
 
 		reticleEntity->PrepareMaterial(player->GetViewMat(), player->GetProjectionMat());
 
@@ -638,6 +647,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		context->RSSetState(0);
 		context->OMSetDepthStencilState(0, 0);
+		pixelShader->SetShaderResourceView("ShadowMap", 0);
 		break;
 	case Game::PAUSE:
 		break;
@@ -651,6 +661,62 @@ void Game::Draw(float deltaTime, float totalTime)
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
 	swapChain->Present(0, 0);
+}
+
+void Game::RenderShadowMap() 
+{
+	// Set up render targets
+	context->OMSetRenderTargets(0, 0, shadowDSV);
+	context->ClearDepthStencilView(shadowDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	context->RSSetState(shadowRasterizer);
+
+	// Create a viewport matching the render target size
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = (float)shadowMapSize;
+	viewport.Height = (float)shadowMapSize;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	context->RSSetViewports(1, &viewport);
+
+	// Set Shadow Vertex Shader and turn off Pixel Shader
+	shadowVS->SetShader();
+	shadowVS->SetMatrix4x4("view", shadowViewMatrix);
+	shadowVS->SetMatrix4x4("projection", shadowProjectionMatrix);
+	context->PSSetShader(0, 0, 0);
+
+	// Loop through and draw Targets (the only things that will cast shadows)
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	for (unsigned int i = 0; i < targets.size(); ++i) 
+	{
+		vector<Entity*> targetEntities = targets[i]->GetTarget();
+		for (unsigned int j = 0; j < targetEntities.size(); ++j)
+		{
+			// Get buffer data from this entity's mesh
+			Entity* currentEntity = targetEntities[j];
+			ID3D11Buffer* vertexBuffer = currentEntity->GetMesh()->GetVertexBuffer();
+			ID3D11Buffer* indexBuffer = currentEntity->GetMesh()->GetIndexBuffer();
+
+			// Set buffers in assembler
+			context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+			context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			shadowVS->SetMatrix4x4("world", currentEntity->GetWorldMatrix());
+			shadowVS->CopyAllBufferData();
+
+			// Draw the entity to the shadow map
+			context->DrawIndexed(currentEntity->GetMesh()->GetIndexCount(), 0, 0);
+		}
+	}
+
+	// Change everything back
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+	viewport.Width = (float)width;
+	viewport.Height = (float)height;
+	context->RSSetViewports(1, &viewport);
+	context->RSSetState(0);
 }
 
 void Game::LoadTargets() {

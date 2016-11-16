@@ -53,6 +53,8 @@ private:
 	void ResetRenderStates();
 	void LoadTargets();
 
+	void RenderShadowMap();
+
 	// GameStates enum to track where we are in the game loop
 	GAME_STATES currentState;
 
