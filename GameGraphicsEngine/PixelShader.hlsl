@@ -88,9 +88,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Sample the shadow map
 	float shadowAmt = ShadowMap.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
 
-	float4 finalColor = (light1Color*woodColor) + (light2Color*woodColor);
+	float4 finalColor = (light1Color*woodColor) + (light2Color*woodColor) * shadowAmt;
 
-	return finalColor * shadowAmt;
+	return finalColor;
 
 
 	// Just return the input color
