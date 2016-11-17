@@ -1,3 +1,3 @@
-﻿Target.obj : warning LNK4205: 'D:\Ben\GGP Assignments\Group Project\GraphicsTargetPractice\GameGraphicsEngine\Debug\vc140.pdb' is missing current debugging information for referencing module; linking object as if no debug info
-  DX11Starter.vcxproj -> D:\Ben\GGP Assignments\Group Project\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.exe
-  DX11Starter.vcxproj -> D:\Ben\GGP Assignments\Group Project\GraphicsTargetPractice\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)
+﻿  compilation object save succeeded; see E:\Yan\Graphics\GameGraphicsEngine\Debug\BloomPS.cso
+  DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.exe
+  DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)

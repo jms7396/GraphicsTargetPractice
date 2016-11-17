@@ -73,6 +73,12 @@ private:
 	// Shader for Shadows
 	SimpleVertexShader* shadowVS;
 
+	// Shaders for Bloom
+	ID3D11RenderTargetView* bloomRTV;
+	ID3D11ShaderResourceView* bloomSRV;
+	SimpleVertexShader* bloomVS;
+	SimplePixelShader* bloomPS;
+
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT4X4 viewMatrix;

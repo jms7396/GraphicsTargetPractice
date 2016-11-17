@@ -60,6 +60,8 @@ Game::~Game()
 	delete skyVertexShader;
 	delete skyPixelShader;
 	delete shadowVS;
+	delete bloomPS;
+	delete bloomVS;
 
 	// Delete the Mesh's to clear memory
 	if (sphereMesh) { delete(sphereMesh); }
@@ -106,6 +108,9 @@ Game::~Game()
 	shadowDSV->Release();
 	shadowRasterizer->Release();
 
+	bloomSRV->Release();
+	bloomRTV->Release();
+
 }
 
 // --------------------------------------------------------
@@ -147,30 +152,49 @@ void Game::Init()
 	// Device create sampler state
 	device->CreateSamplerState(&samplerDesc, &sampler);
 
+	// Create post process resources -----------------------------------------
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = width;
+	textureDesc.Height = height;
+	textureDesc.ArraySize = 1;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.MiscFlags = 0;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D* ppTexture;
+	device->CreateTexture2D(&textureDesc, 0, &ppTexture);
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = textureDesc.Format;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+	device->CreateRenderTargetView(ppTexture, &rtvDesc, &bloomRTV);
+
+	// Create the Shader Resource View
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+	device->CreateShaderResourceView(ppTexture, &srvDesc, &bloomSRV);
+
+	// We don't need the texture reference itself no mo'
+	ppTexture->Release();
+	
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 	LoadSpriteFont();
 	CreateMatrices();
-	//CreateBasicGeometry(); // Don't really need to be making the geometry until we're advancing to the Play state (at least for now)
-
-
-	// Set Up Light		** We may be able to leave this out of Init(), and only set up the lights (and LoadShaders) in InitForPlay()
-	//dirLight.AmbietColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-	//dirLight.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
-	//dirLight.Direction = XMFLOAT3(0, -1, 0);
-
-	//dirLight2.AmbietColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0f);
-	//dirLight2.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
-	//dirLight2.Direction = XMFLOAT3(0, 0, 1);
-
-	//pixelShader->SetData("light", &dirLight, sizeof(DirectionalLight));
-	//pixelShader->SetData("light2", &dirLight2, sizeof(DirectionalLight));
-
-	// Tell the input assembler stage of the pipeline what kind of
-	// geometric primitives (points, lines or triangles) we want to draw.  
-	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -301,6 +325,14 @@ void Game::LoadShaders()
 	shadowVS = new SimpleVertexShader(device, context);
 	if (!shadowVS->LoadShaderFile(L"Debug/ShadowVertexShader.cso"))
 		shadowVS->LoadShaderFile(L"ShadowVertexShader.cso");
+
+	bloomVS = new SimpleVertexShader(device, context);
+	if (!bloomVS->LoadShaderFile(L"Debug/BloomVS.cso"))
+		bloomVS->LoadShaderFile(L"BloomVS.cso");
+
+	bloomPS = new SimplePixelShader(device, context);
+	if (!bloomPS->LoadShaderFile(L"Debug/BloomPS.cso"))
+		bloomPS->LoadShaderFile(L"BloomPS.cso");
 
 	// Load our shaders into our materials
 	mat1 = new Material(pixelShader, vertexShader, rockSRV, sampler);
@@ -525,6 +557,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of Draw (before drawing *anything*)
+	context->ClearRenderTargetView(bloomRTV, color); // Clear post process target too
 	context->ClearRenderTargetView(backBufferRTV, color);
 	context->ClearDepthStencilView(
 		depthStencilView,
@@ -542,6 +575,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	ID3D11Buffer* indexBuffer = 0;
 	ID3D11Buffer* skyVB = 0;
 	ID3D11Buffer* skyIB = 0;
+	ID3D11Buffer* nothing = 0;
 
 	switch (currentState)
 	{
@@ -648,6 +682,36 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->RSSetState(0);
 		context->OMSetDepthStencilState(0, 0);
 		pixelShader->SetShaderResourceView("ShadowMap", 0);
+
+		// Reset the states!
+		context->RSSetState(0);
+		context->OMSetDepthStencilState(0, 0);
+
+		// Make sure output goes to my post process target
+		context->OMSetRenderTargets(1, &bloomRTV, depthStencilView);
+
+		// Now ---- post process
+		context->OMSetRenderTargets(1, &backBufferRTV, 0);
+
+		// Set up post process shaders
+		bloomVS->SetShader();
+
+		bloomPS->SetShader();
+		bloomPS->SetShaderResourceView("Pixels", bloomSRV);
+		bloomPS->SetSamplerState("Sampler", sampler);
+		bloomPS->SetInt("blurAmount", 9);
+		bloomPS->SetFloat("pixelWidth", 1.0f / width);
+		bloomPS->SetFloat("pixelHeight", 1.0f / height);
+		bloomPS->CopyAllBufferData();
+
+		// Now actually draw
+		context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+		context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+		context->Draw(3, 0);
+
+		bloomPS->SetShaderResourceView("Pixels", 0);
+
 		break;
 	case Game::PAUSE:
 		break;
