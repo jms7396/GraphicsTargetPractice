@@ -590,6 +590,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Draw shadows first
 		RenderShadowMap();
 
+		// Make sure output goes to my post process target
+		context->OMSetRenderTargets(1, &bloomRTV, depthStencilView);
+
 		// Draw aiming reticle
 		vertexBuffer = reticleMesh->GetVertexBuffer();
 		indexBuffer = reticleMesh->GetIndexBuffer();
@@ -687,9 +690,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->RSSetState(0);
 		context->OMSetDepthStencilState(0, 0);
 
-		// Make sure output goes to my post process target
-		context->OMSetRenderTargets(1, &bloomRTV, depthStencilView);
-
 		// Now ---- post process
 		context->OMSetRenderTargets(1, &backBufferRTV, 0);
 
@@ -699,7 +699,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		bloomPS->SetShader();
 		bloomPS->SetShaderResourceView("Pixels", bloomSRV);
 		bloomPS->SetSamplerState("Sampler", sampler);
-		bloomPS->SetInt("blurAmount", 9);
+		bloomPS->SetInt("blurAmount", 1);
 		bloomPS->SetFloat("pixelWidth", 1.0f / width);
 		bloomPS->SetFloat("pixelHeight", 1.0f / height);
 		bloomPS->CopyAllBufferData();
