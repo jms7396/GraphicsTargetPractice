@@ -54,6 +54,8 @@ private:
 	void LoadTargets();
 
 	void RenderShadowMap();
+	void Bloom(ID3D11Buffer* nothing, UINT stride, UINT offset);
+	void UnbindResources();
 
 	// GameStates enum to track where we are in the game loop
 	GAME_STATES currentState;
@@ -76,8 +78,12 @@ private:
 	// Shaders for Bloom
 	ID3D11RenderTargetView* bloomRTV;
 	ID3D11ShaderResourceView* bloomSRV;
+	ID3D11RenderTargetView* originalRTV;
+	ID3D11ShaderResourceView* originalSRV;
 	SimpleVertexShader* bloomVS;
 	SimplePixelShader* bloomPS;
+	SimplePixelShader* blurPS;
+	SimplePixelShader* thresholdPS;
 
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
@@ -142,5 +148,6 @@ private:
 	bool needNewTarget = false;
 	bool spacePressed = false;
 	bool debug = false;
+	bool bloo = false;
 };
 

@@ -28,6 +28,10 @@ Game::Game(HINSTANCE hInstance)
 	skyVertexShader = 0;
 	skyPixelShader = 0;
 	shadowVS = 0;
+	bloomPS = 0;
+	bloomVS = 0;
+	blurPS = 0;
+	thresholdPS = 0;
 
 	reticleMesh = 0;
 	reticleEntity = 0;
@@ -62,6 +66,8 @@ Game::~Game()
 	delete shadowVS;
 	delete bloomPS;
 	delete bloomVS;
+	delete blurPS;
+	delete thresholdPS;
 
 	// Delete the Mesh's to clear memory
 	if (sphereMesh) { delete(sphereMesh); }
@@ -110,7 +116,8 @@ Game::~Game()
 
 	bloomSRV->Release();
 	bloomRTV->Release();
-
+	originalSRV->Release();
+	originalRTV->Release();
 }
 
 // --------------------------------------------------------
@@ -188,6 +195,42 @@ void Game::Init()
 
 	// We don't need the texture reference itself no mo'
 	ppTexture->Release();
+
+	D3D11_TEXTURE2D_DESC tDesc = {};
+	tDesc.Width = width;
+	tDesc.Height = height;
+	tDesc.ArraySize = 1;
+	tDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	tDesc.CPUAccessFlags = 0;
+	tDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	tDesc.MipLevels = 1;
+	tDesc.MiscFlags = 0;
+	tDesc.SampleDesc.Count = 1;
+	tDesc.SampleDesc.Quality = 0;
+	tDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D* ppoTexture;
+	device->CreateTexture2D(&tDesc, 0, &ppoTexture);
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC rDesc = {};
+	rDesc.Format = tDesc.Format;
+	rDesc.Texture2D.MipSlice = 0;
+	rDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+	device->CreateRenderTargetView(ppoTexture, &rDesc, &originalRTV);
+
+	// Create the Shader Resource View
+	D3D11_SHADER_RESOURCE_VIEW_DESC sDesc = {};
+	sDesc.Format = tDesc.Format;
+	sDesc.Texture2D.MipLevels = 1;
+	sDesc.Texture2D.MostDetailedMip = 0;
+	sDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+	device->CreateShaderResourceView(ppoTexture, &sDesc, &originalSRV);
+
+	// We don't need the texture reference itself no mo'
+	ppoTexture->Release();
 	
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
@@ -334,6 +377,15 @@ void Game::LoadShaders()
 	if (!bloomPS->LoadShaderFile(L"Debug/BloomPS.cso"))
 		bloomPS->LoadShaderFile(L"BloomPS.cso");
 
+	blurPS = new SimplePixelShader(device, context);
+	if (!blurPS->LoadShaderFile(L"Debug/BlurPS.cso"))
+		blurPS->LoadShaderFile(L"BlurPS.cso");
+
+	thresholdPS = new SimplePixelShader(device, context);
+	if (!thresholdPS->LoadShaderFile(L"Debug/ThresholdPS.cso"))
+		thresholdPS->LoadShaderFile(L"ThresholdPS.cso");
+
+
 	// Load our shaders into our materials
 	mat1 = new Material(pixelShader, vertexShader, rockSRV, sampler);
 	mat2 = new Material(pixelShader, vertexShader, woodSRV, sampler);
@@ -462,6 +514,15 @@ void Game::Update(float deltaTime, float totalTime)
 		debug = false;
 	}
 
+	if (GetAsyncKeyState('M'))
+	{
+		bloo = true;
+	}
+	else if (GetAsyncKeyState('N'))
+	{
+		bloo = false;
+	}
+
 	switch (currentState)
 	{
 	case Game::START:
@@ -552,12 +613,13 @@ void Game::Update(float deltaTime, float totalTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	const float color[4] = { 0.7f, 0.7f, 0.7f, 0.0f };
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of Draw (before drawing *anything*)
-	context->ClearRenderTargetView(bloomRTV, color); // Clear post process target too
+	context->ClearRenderTargetView(bloomRTV, color);
+	context->ClearRenderTargetView(originalRTV, color);
 	context->ClearRenderTargetView(backBufferRTV, color);
 	context->ClearDepthStencilView(
 		depthStencilView,
@@ -590,8 +652,11 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Draw shadows first
 		RenderShadowMap();
 
-		// Make sure output goes to my post process target
-		context->OMSetRenderTargets(1, &bloomRTV, depthStencilView);
+		// Make sure output goes to the post process target
+		if (bloo)
+			context->OMSetRenderTargets(1, &originalRTV, depthStencilView);
+		else
+			context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
 		// Draw aiming reticle
 		vertexBuffer = reticleMesh->GetVertexBuffer();
@@ -690,28 +755,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->RSSetState(0);
 		context->OMSetDepthStencilState(0, 0);
 
-		// Now ---- post process
-		context->OMSetRenderTargets(1, &backBufferRTV, 0);
-
-		// Set up post process shaders
-		bloomVS->SetShader();
-
-		bloomPS->SetShader();
-		bloomPS->SetShaderResourceView("Pixels", bloomSRV);
-		bloomPS->SetSamplerState("Sampler", sampler);
-		bloomPS->SetInt("blurAmount", 1);
-		bloomPS->SetFloat("pixelWidth", 1.0f / width);
-		bloomPS->SetFloat("pixelHeight", 1.0f / height);
-		bloomPS->CopyAllBufferData();
-
-		// Now actually draw
-		context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
-		context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
-
-		context->Draw(3, 0);
-
-		bloomPS->SetShaderResourceView("Pixels", 0);
-
+		if (bloo)
+			Bloom(nothing, stride, offset);
 		break;
 	case Game::PAUSE:
 		break;
@@ -870,4 +915,95 @@ void Game::OnMouseWheel(float wheelDelta, int x, int y)
 {
 	// Add any custom code here...
 }
+
+void Game::Bloom(ID3D11Buffer* nothing, UINT stride, UINT offset)
+{
+	// Now ---- post process
+
+	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	context->OMSetRenderTargets(1, &bloomRTV, 0);
+
+	// Set up post process shaders
+	bloomVS->SetShader();
+
+	//take the colors that are above the threshold
+
+	thresholdPS->SetShaderResourceView("Pixels", originalSRV);
+	thresholdPS->SetSamplerState("Sampler", sampler);
+	thresholdPS->SetFloat("threshold", 0.3f);
+	thresholdPS->SetShader();
+	context->Draw(3, 0);
+
+	thresholdPS->SetShaderResourceView("Pixels", 0);
+	UnbindResources();
+
+	context->OMSetRenderTargets(1, &bloomRTV, 0);
+
+	bloomVS->SetShader();
+
+	//blur the threshold texture twice
+
+	blurPS->SetShaderResourceView("Pixels", bloomSRV);
+	blurPS->SetSamplerState("Sampler", sampler);
+	blurPS->SetInt("blurAmount", 100);
+	blurPS->SetInt("vertical", 0);
+	blurPS->SetFloat("pixelWidth", 1.0f / width);
+	blurPS->SetFloat("pixelHeight", 1.0f / height);
+	blurPS->SetShader();
+	context->Draw(3, 0);
+
+	blurPS->SetShaderResourceView("Pixels", 0);
+	UnbindResources();
+
+	context->OMSetRenderTargets(1, &bloomRTV, 0);
+
+	bloomVS->SetShader();
+
+	blurPS->SetShaderResourceView("Pixels", bloomSRV);
+	blurPS->SetSamplerState("Sampler", sampler);
+	blurPS->SetInt("blurAmount", 100);
+	blurPS->SetInt("vertical", 1);
+	blurPS->SetFloat("pixelWidth", 1.0f / width);
+	blurPS->SetFloat("pixelHeight", 1.0f / height);
+
+	blurPS->SetShader();
+	context->Draw(3, 0);
+
+	blurPS->SetShaderResourceView("Pixels", 0);
+	UnbindResources();
+
+	context->OMSetRenderTargets(1, &backBufferRTV, 0);
+
+	bloomVS->SetShader();
+
+	//Add the blured image to the original
+
+	bloomPS->SetShaderResourceView("BlurThreshold", bloomSRV);
+	bloomPS->SetShaderResourceView("Original", originalSRV);
+	bloomPS->SetSamplerState("Sampler", sampler);
+	bloomPS->SetFloat("bloomIntensity", 1.3f);
+	bloomPS->SetFloat("originalIntensity", 1.0f);
+	bloomPS->SetFloat("bloomSaturation", 1.0f);
+	bloomPS->SetFloat("originalSaturation", 1.0f);
+	bloomPS->SetShader();
+	bloomPS->CopyAllBufferData();
+
+	// Now actually draw
+	context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	context->Draw(3, 0);
+
+	bloomPS->SetShaderResourceView("Pixels", 0);
+	UnbindResources();
+}
+
+void Game::UnbindResources()
+{
+	ID3D11ShaderResourceView* null[] = { nullptr, nullptr };
+	context->PSSetShaderResources(0, 2, null);
+}
+
 #pragma endregion

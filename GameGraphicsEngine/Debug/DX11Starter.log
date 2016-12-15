@@ -1,3 +1,5 @@
-﻿  compilation object save succeeded; see E:\Yan\Graphics\GameGraphicsEngine\Debug\BloomPS.cso
+﻿E:\Yan\Graphics\GameGraphicsEngine\BloomPS.hlsl(21,15-47): warning X3206: 'dot': implicit truncation of vector type
+  
+  compilation object save succeeded; see E:\Yan\Graphics\GameGraphicsEngine\Debug\BloomPS.cso
   DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.exe
   DX11Starter.vcxproj -> E:\Yan\Graphics\GameGraphicsEngine\Debug\DX11Starter.pdb (Full PDB)
